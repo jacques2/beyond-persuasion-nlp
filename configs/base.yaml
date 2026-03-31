@@ -1,0 +1,28 @@
+project:
+  name: beyond-persuasion-nlp
+  description: Context-aware conversational safeguards for emotionally vulnerable users.
+
+affective:
+  model_name: "TODO/emotion-model"
+  labels:
+    - sadness
+    - anger
+    - fear
+    - stress
+    - neutral
+  threshold_strategy: "TODO_define"
+
+ethics:
+  vulnerability_threshold: 0.7
+  enable_guardrail: true
+  mode: "rule_based"
+
+llm:
+  backend: "local"
+  model_path: "TODO/local-model-path"
+  default_style: "helpful"
+  protected_style: "neutral_empathetic"
+
+evaluation:
+  prompts_path: "data/evaluation/prompts.csv"
+  outputs_dir: "artifacts/evaluation"
