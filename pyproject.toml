@@ -9,7 +9,7 @@ description = "Context-aware conversational agents to reduce manipulative behavi
 readme = "README.md"
 requires-python = ">=3.10"
 authors = [
-  { name = "Jacopo Francesco Amoretti" }
+  { name = "Jacopo" }
 ]
 dependencies = [
   "pyyaml>=6.0",
