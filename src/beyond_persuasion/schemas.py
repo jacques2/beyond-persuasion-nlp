@@ -15,17 +15,14 @@ from typing import Dict, List, Optional
 @dataclass
 class ConversationTurn:
     """Represent one user input handled by the system.
-
-    This is the first object that enters the pipeline. For now we keep it
-    small and focused on the current turn, without building a complex chat
-    history system.
+    This is the first object that enters the pipeline
     """
 
     user_text: str
     conversation_id: Optional[str] = None
     metadata: Dict[str, str] = field(default_factory=dict)
 
-    def __post_init__(self) -> None:
+    def __post_init__(self) -> None: # check if user_text is not empty or made of whitespaces
         # Keep the input clean early so downstream modules receive a
         # predictable value.
         self.user_text = self.user_text.strip()
