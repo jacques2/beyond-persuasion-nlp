@@ -46,19 +46,22 @@ class EmotionAnalyzer:
         self._classifier = None
 
         if self.config.use_transformers:
+            # If the config requests a transformers model, attempt to build the pipeline oterwise leave it as None to trigger the heuristic fallback.
             self._classifier = self._build_transformers_pipeline()
-
+          
     def predict(self, text: str) -> EmotionPrediction:
         """Estimate the emotional state of a single user utterance."""
         cleaned_text = normalize_text(text)
 
         if not cleaned_text:
+            # If the input is empty after cleaning, return a default neutral prediction.
             return EmotionPrediction(
                 label="neutral",
                 confidence=1.0,
                 scores={"neutral": 1.0},
             )
 
+        # If a transformers classifier is available, use it. If it fails for any reason, fall back to heuristics.
         if self._classifier is not None:
             try:
                 return self._predict_with_transformers(cleaned_text)
@@ -79,6 +82,7 @@ class EmotionAnalyzer:
         except Exception:
             return None
 
+        # HugginFace pipeline does the heavy lifting of tokenization, batching, and model inference. We just need to specify the task and the model name.
         return pipeline(
             task="text-classification",
             model=self.config.model_name,
@@ -89,6 +93,7 @@ class EmotionAnalyzer:
         """Run prediction through a transformers classifier."""
         raw_output = self._classifier(text)
 
+        # Some models return a list of predictions for each input, even if there's only one input. In that case, we take the first item.
         if raw_output and isinstance(raw_output, list) and isinstance(raw_output[0], list):
             raw_output = raw_output[0]
 
@@ -109,6 +114,7 @@ class EmotionAnalyzer:
             raw_label = str(item.get("label", "")).strip().lower()
             raw_score = float(item.get("score", 0.0))
 
+            # Understand which project emotion this model label corresponds to, then add the score to that emotion
             project_label = self._map_model_label_to_project_label(raw_label)
             project_scores[project_label] += raw_score
 
@@ -138,9 +144,6 @@ class EmotionAnalyzer:
         This is intentionally simple and explainable:
         each keyword match adds weight to one emotion, then scores are
         normalized to produce a distribution.
-
-        The fallback is English-only because multilingual support is outside
-        the scope of this project.
         """
         lowered_text = text.lower()
         scores = self._empty_scores()
