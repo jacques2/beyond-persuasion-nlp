@@ -6,8 +6,7 @@ This module is intentionally simple and deterministic. It contains:
 - the default thresholds used by the project,
 - helper functions that turn emotion predictions into rule signals.
 
-The goal is to keep the ethical policy easy to inspect and justify in the
-final report.
+The goal is to keep the ethical policy easy to inspect
 """
 
 from dataclasses import dataclass, field
