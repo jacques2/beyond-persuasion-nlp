@@ -111,6 +111,9 @@ def primary_emotion_rule_triggered(
 
     primary_score = prediction.score_for(prediction.label)
 
+    # Dual check to prevent overreacting to weak signals:
+    # - Confidence: Ensures the model trusts its prediction.
+    # - Primary score: Ensures the emotion is strong in absolute terms.
     return (
         prediction.confidence >= config.minimum_confidence_for_flag
         and primary_score >= config.primary_emotion_threshold
