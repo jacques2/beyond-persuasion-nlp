@@ -7,7 +7,7 @@ name = "beyond-persuasion-nlp"
 version = "0.1.0"
 description = "Context-aware conversational agents to reduce manipulative behavior toward emotionally vulnerable users."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.9"
 authors = [
   { name = "Jacopo" }
 ]

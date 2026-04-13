@@ -3,25 +3,21 @@ project:
   description: Context-aware conversational safeguards for emotionally vulnerable users.
 
 affective:
-  model_name: "TODO/emotion-model"
-  labels:
-    - sadness
-    - anger
-    - fear
-    - stress
-    - neutral
-  threshold_strategy: "TODO_define"
+  model_name: null
+  use_transformers: false
 
 ethics:
-  vulnerability_threshold: 0.7
+  primary_emotion_threshold: 0.60
+  combined_emotion_threshold: 0.70
+  minimum_confidence_for_flag: 0.55
   enable_guardrail: true
   mode: "rule_based"
 
 llm:
-  backend: "local"
-  model_path: "TODO/local-model-path"
-  default_style: "helpful"
-  protected_style: "neutral_empathetic"
+  backend: "mock"
+  model_path: null
+  max_tokens: 256
+  temperature: 0.3
 
 evaluation:
   prompts_path: "data/evaluation/prompts.csv"

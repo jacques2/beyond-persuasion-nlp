@@ -1,12 +1,106 @@
-"""Adapter for the chosen local language model backend.
+"""Thin adapter for the local language model backend.
 
-Keep this layer thin so the rest of the project does not depend on one vendor or library.
+This module keeps backend-specific details out of the orchestration layer.
+For the project we support two modes:
+
+- ``mock``: useful for development, testing, and demos without a real model
+- ``llama_cpp``: optional backend for a local GGUF model via llama-cpp-python
 """
+
+from dataclasses import dataclass
+from typing import Optional
+
+
+@dataclass
+class LocalLLMConfig:
+    """Configuration for the local LLM client."""
+
+    backend: str = "mock"
+    model_path: Optional[str] = None
+    max_tokens: int = 256
+    temperature: float = 0.3
+
+    def __post_init__(self) -> None:
+        self.backend = self.backend.strip().lower()
+
+        if self.backend not in ("mock", "llama_cpp"):
+            raise ValueError("backend must be either 'mock' or 'llama_cpp'")
+
+        if self.max_tokens <= 0:
+            raise ValueError("max_tokens must be greater than 0")
+
+        if self.temperature < 0.0:
+            raise ValueError("temperature must be non-negative")
 
 
 class LocalLLMClient:
-    """Placeholder interface for a local inference backend."""
+    """Small wrapper around the chosen local inference backend."""
+
+    def __init__(self, config: Optional[LocalLLMConfig] = None) -> None:
+        self.config = config or LocalLLMConfig()
+        self._model = None
+
+        if self.config.backend == "llama_cpp":
+            self._model = self._build_llama_cpp_backend()
 
     def generate(self, system_prompt: str, user_prompt: str) -> str:
-        """Generate a model response."""
-        raise NotImplementedError("Connect your local LLM backend here.")
+        """Generate a model response from a system and user prompt."""
+        if self.config.backend == "mock":
+            return self._generate_mock_response(system_prompt, user_prompt)
+
+        return self._generate_with_llama_cpp(system_prompt, user_prompt)
+
+    def _build_llama_cpp_backend(self):
+        """Create the llama-cpp backend if the dependency is available."""
+        if not self.config.model_path:
+            raise ValueError("model_path is required when backend='llama_cpp'")
+
+        try:
+            from llama_cpp import Llama
+        except Exception as exc:
+            raise RuntimeError(
+                "llama-cpp-python is not installed, so the local model backend "
+                "cannot be created."
+            ) from exc
+
+        return Llama(
+            model_path=self.config.model_path,
+            chat_format="chatml",
+            verbose=False,
+        )
+
+    def _generate_with_llama_cpp(self, system_prompt: str, user_prompt: str) -> str:
+        """Run generation through the llama-cpp chat completion API."""
+        if self._model is None:
+            raise RuntimeError("The llama_cpp backend is not initialized.")
+
+        response = self._model.create_chat_completion(
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            temperature=self.config.temperature,
+            max_tokens=self.config.max_tokens,
+        )
+
+        return response["choices"][0]["message"]["content"].strip()
+
+    def _generate_mock_response(self, system_prompt: str, user_prompt: str) -> str:
+        """Return a deterministic placeholder response for development.
+
+        This mode is useful before connecting a real model because it lets the
+        rest of the pipeline run end-to-end.
+        """
+        if "protection mode" in system_prompt.lower():
+            return (
+                "I understand that this may be a sensitive moment. "
+                "I will respond carefully and avoid pushing you toward any "
+                "decision. Could you tell me a bit more about what you need "
+                "right now?"
+            )
+
+        return (
+            "This is a mock response from the local LLM backend. "
+            "Replace the 'mock' backend with 'llama_cpp' when a real local "
+            "model is available."
+        )
