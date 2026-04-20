@@ -1,46 +1,177 @@
 # Beyond Persuasion NLP
 
-"Beyond Persuasion: Protecting Emotionally Vulnerable Users through Context-Aware Conversational Agents".
+This repository contains the software implementation for the university project:
 
-The structure follows the initial report and separates the project into four main workstreams:
+**Beyond Persuasion: Protecting Emotionally Vulnerable Users through Context-Aware Conversational Agents**
 
-1. `affective`: emotion detection from user text.
-2. `ethics`: rule-based ethical engine and vulnerability thresholds.
-3. `llm`: local LLM interface and prompt-guarding logic.
-4. `evaluation`: experiments comparing guarded vs unguarded behavior.
+The project studies how a conversational system should change its behavior when a
+user appears emotionally vulnerable. The implemented pipeline combines:
 
-## Proposed Structure
+1. emotion detection from text;
+2. a rule-based ethical engine;
+3. guarded prompt generation for a local LLM backend;
+4. a small evaluation workflow for guarded vs unguarded comparisons.
+
+## Current Status
+
+The software core is complete and includes:
+
+- an affective pipeline with a heuristic fallback and optional `transformers` backend;
+- an interpretable ethical engine with explicit thresholds and rationales;
+- prompt generation for normal and protected interaction modes;
+- a mock local LLM backend plus optional `llama_cpp` integration;
+- an end-to-end orchestrator;
+- unit and integration tests;
+- a CSV-based evaluation pipeline.
+
+## Repository Structure
 
 ```text
 beyond-persuasion-nlp/
 ├── configs/
+│   └── base.yaml
 ├── data/
-│   ├── raw/
-│   ├── interim/
-│   ├── processed/
 │   └── evaluation/
+│       └── prompts.csv
 ├── docs/
+│   ├── project_overview.md
 │   └── reports/
-├── notebooks/
+│       └── final_report_template.md
 ├── scripts/
+│   └── run_demo.py
 ├── src/
 │   └── beyond_persuasion/
 │       ├── affective/
 │       ├── ethics/
+│       ├── evaluation/
 │       ├── llm/
 │       ├── orchestration/
-│       ├── evaluation/
 │       └── utils/
 └── tests/
-    ├── unit/
     ├── integration/
-    └── fixtures/
+    └── unit/
 ```
 
-## Development Notes
+## Main Pipeline
 
-- Language: Python
-- Package layout: `src/`-based
-- Build and dependency management: `pyproject.toml`
-- Optional automation: `Makefile`
-- Experiment configuration: YAML files in `configs/`
+The main software flow is:
+
+```text
+user text
+-> emotion prediction
+-> ethical assessment
+-> guarded or standard system prompt
+-> local LLM response
+```
+
+More specifically:
+
+- [pipeline.py](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/src/beyond_persuasion/affective/pipeline.py) converts text into an `EmotionPrediction`
+- [rules.py](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/src/beyond_persuasion/ethics/rules.py) defines the ethical policy
+- [engine.py](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/src/beyond_persuasion/ethics/engine.py) turns predictions into an `EthicalAssessment`
+- [prompting.py](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/src/beyond_persuasion/llm/prompting.py) builds standard or protected prompts
+- [local_model.py](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/src/beyond_persuasion/llm/local_model.py) runs the selected local backend
+- [agent.py](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/src/beyond_persuasion/orchestration/agent.py) orchestrates the full process
+
+## Installation
+
+The repository supports a lightweight setup and optional extras.
+
+Base installation:
+
+```bash
+python3 -m pip install -e .
+```
+
+Development tools:
+
+```bash
+python3 -m pip install -e ".[dev]"
+```
+
+Optional ML backend:
+
+```bash
+python3 -m pip install -e ".[ml]"
+```
+
+Optional local GGUF backend:
+
+```bash
+python3 -m pip install -e ".[llm]"
+```
+
+## Run the Demo
+
+The demo uses the `mock` LLM backend, so it works even without a real local model:
+
+```bash
+PYTHONPATH=src python3 scripts/run_demo.py
+```
+
+The demo prints:
+
+- the predicted emotion
+- the ethical assessment
+- the generated system prompt
+- the user prompt
+- the final response
+
+## Run the Tests
+
+The current test suite covers:
+
+- ethical engine behavior
+- end-to-end guarded agent behavior
+- the evaluation runner
+
+Run all tests with:
+
+```bash
+PYTHONPATH=src python3 -m unittest \
+  tests.unit.test_ethics_engine \
+  tests.integration.test_guarded_agent \
+  tests.integration.test_evaluation_runner -v
+```
+
+## Run the Evaluation
+
+The evaluation prompts are stored in:
+
+- [prompts.csv](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/data/evaluation/prompts.csv)
+
+The evaluation runner compares:
+
+- a guarded run, where the ethical engine can activate protection
+- an unguarded baseline, where the same prompt is sent without the protection mode
+
+The relevant code is in:
+
+- [dataset.py](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/src/beyond_persuasion/evaluation/dataset.py)
+- [runner.py](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/src/beyond_persuasion/evaluation/runner.py)
+
+## Dependency Notes
+
+- `PyYAML` is used for loading `configs/base.yaml`.
+- `transformers` is optional. If it is not installed or no model is configured,
+  the affective pipeline falls back to the internal heuristic classifier.
+- `llama-cpp-python` is optional. If it is not installed, the project can still
+  run with the `mock` backend.
+
+## Known Limitations
+
+- The current affective analysis uses a heuristic fallback unless a real
+  `transformers` model is configured.
+- The `mock` LLM backend is useful for development, but it is not a substitute
+  for a real local language model.
+- The evaluation pipeline is intentionally lightweight and meant for a
+  university-scale project, not a production benchmark.
+
+## Delivery Notes
+
+For the final academic delivery, the most important documents are:
+
+- [project_overview.md](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/docs/project_overview.md)
+- [final_report_template.md](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/docs/reports/final_report_template.md)
+
+These can be used as the basis for the written report accompanying the code.
