@@ -114,12 +114,3 @@ decision-making behavior of the rule-based ethical layer.
 - The evaluation is intentionally lightweight and suitable for a university
   project rather than a large empirical benchmark.
 
-## Suggested Report Focus
-
-For the written report, the most convincing structure is:
-
-1. explain the ethical problem;
-2. justify the rule-based ethical engine;
-3. describe the guarded prompt mechanism;
-4. show the guarded vs unguarded comparison;
-5. discuss limitations and future work.
