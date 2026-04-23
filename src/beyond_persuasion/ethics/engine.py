@@ -31,6 +31,8 @@ class EthicalEngine:
         3. return a structured ethical assessment.
         """
         triggered_rules = get_triggered_rules(prediction, self.config)
+
+        # If any rule is triggered, we consider the user vulnerable and in need of protection.
         is_vulnerable = len(triggered_rules) > 0
 
         # The final score combines the weighted risk estimate and the full

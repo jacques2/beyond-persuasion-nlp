@@ -95,6 +95,7 @@ def _build_metadata_block(turn: ConversationTurn) -> str:
 
     lines = ["Turn metadata:"]
 
+    # Sort the metadata keys to ensure a stable order for testing and debugging.
     for key in sorted(turn.metadata):
         lines.append("- %s: %s" % (key, turn.metadata[key]))
 

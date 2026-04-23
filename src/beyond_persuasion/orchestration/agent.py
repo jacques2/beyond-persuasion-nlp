@@ -41,6 +41,7 @@ class SafeConversationAgent:
         self.llm_client = llm_client
 
     @classmethod
+    # I take the config from the YAML file and build the three main components of the agent.
     def from_config(cls, config: Dict[str, Any]) -> "SafeConversationAgent":
         """Build the full agent stack from a plain configuration dictionary."""
         affective_config = config.get("affective", {})
@@ -49,6 +50,7 @@ class SafeConversationAgent:
 
         emotion_analyzer = EmotionAnalyzer(
             EmotionAnalyzerConfig(
+                # I use normalize_optional_string to allow for empty placeholders in the YAML config that get treated as None.
                 model_name=_normalize_optional_string(affective_config.get("model_name")),
                 use_transformers=bool(affective_config.get("use_transformers", True)),
             )
@@ -94,8 +96,13 @@ class SafeConversationAgent:
 
     def run(self, turn: ConversationTurn) -> AgentRunResult:
         """Run the full guarded conversation pipeline with full intermediate outputs."""
+        # First we get the emotional prediction from the user's input text
         prediction = self.emotion_analyzer.predict(turn.user_text)
+
+        # Second, we assess the ethical risk based on the emotional prediction
         assessment = self.ethical_engine.assess(prediction)
+
+        # Finally, we build the prompts and get the LLM response. The system prompt includes the ethical assessment to guide the model's response.
         system_prompt = build_system_prompt(assessment)
         user_prompt = build_user_prompt(turn)
         response_text = self.llm_client.generate(

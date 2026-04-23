@@ -22,7 +22,7 @@ class ConversationTurn:
     conversation_id: Optional[str] = None
     metadata: Dict[str, str] = field(default_factory=dict)
 
-    def __post_init__(self) -> None: # check if user_text is not empty or made of whitespaces
+    def __post_init__(self) -> None: # Check if user_text is not empty or made of whitespaces
         # Keep the input clean early so downstream modules receive a
         # predictable value.
         self.user_text = self.user_text.strip()

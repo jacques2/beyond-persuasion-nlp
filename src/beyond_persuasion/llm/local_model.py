@@ -25,7 +25,7 @@ class LocalLLMConfig:
 
         if self.backend not in ("mock", "llama_cpp"):
             raise ValueError("backend must be either 'mock' or 'llama_cpp'")
-
+        
         if self.max_tokens <= 0:
             raise ValueError("max_tokens must be greater than 0")
 
