@@ -91,6 +91,9 @@ class EmotionAnalyzer:
 
     def _predict_with_transformers(self, text: str) -> EmotionPrediction:
         """Run prediction through a transformers classifier."""
+
+        # Here we call the Hugging Face pipeline, which returns a list of dictionaries with "label" and "score" keys. 
+        # We then need to map those raw labels into our project's reduced taxonomy and normalize the scores to produce a final EmotionPrediction.
         raw_output = self._classifier(text)
 
         # Some models return a list of predictions for each input, even if there's only one input. In that case, we take the first item.
@@ -106,37 +109,62 @@ class EmotionAnalyzer:
             scores=scores,
         )
 
-    def _project_scores_from_model_output(self, raw_output: List[Dict[str, float]]) -> Dict[str, float]:
+    def _project_scores_from_model_output(
+        self,
+        raw_output: List[Dict[str, float]],
+    ) -> Dict[str, float]:
         """Map raw model labels to the smaller project taxonomy."""
         project_scores = self._empty_scores()
+        matched_project_label = False
 
         for item in raw_output:
             raw_label = str(item.get("label", "")).strip().lower()
             raw_score = float(item.get("score", 0.0))
 
-            # Understand which project emotion this model label corresponds to, then add the score to that emotion
+            # Only keep labels that can be mapped into the project's reduced
+            # taxonomy. This avoids turning every unrelated positive label
+            # into "neutral", which would hide vulnerable signals.
             project_label = self._map_model_label_to_project_label(raw_label)
+            if project_label is None:
+                continue
+
+            matched_project_label = True
             project_scores[project_label] += raw_score
+
+        if not matched_project_label:
+            return {"sadness": 0.0, "anger": 0.0, "fear": 0.0, "stress": 0.0, "neutral": 1.0}
 
         return self._normalize_scores(project_scores)
 
-    def _map_model_label_to_project_label(self, raw_label: str) -> str:
+    def _map_model_label_to_project_label(self, raw_label: str) -> Optional[str]:
         """Map external model labels into the project's five emotions."""
         label = raw_label.lower()
 
-        if "sad" in label or "grief" in label or "depress" in label:
+        if (
+            "sad" in label
+            or "grief" in label
+            or "depress" in label
+            or "disappoint" in label
+            or "remorse" in label
+        ):
             return "sadness"
-        if "ang" in label or "rage" in label or "annoy" in label:
+        if "ang" in label or "rage" in label or "annoy" in label or "disgust" in label:
             return "anger"
         if "fear" in label or "scared" in label or "terror" in label:
             return "fear"
-        if "stress" in label or "anx" in label or "worry" in label or "nerv" in label:
+        if (
+            "stress" in label
+            or "anx" in label
+            or "worry" in label
+            or "nerv" in label
+            or "overwhelm" in label
+        ):
             return "stress"
         if "neutral" in label or "calm" in label:
             return "neutral"
 
-        # Unknown labels are treated as neutral to avoid over-flagging users.
-        return "neutral"
+        # Unrelated labels are ignored rather than folded into "neutral".
+        return None
 
     def _predict_with_heuristics(self, text: str) -> EmotionPrediction:
         """Use a transparent keyword-based fallback classifier.

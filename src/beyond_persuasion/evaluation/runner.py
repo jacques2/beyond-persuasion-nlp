@@ -1,6 +1,7 @@
 """Evaluation routines for guarded vs unguarded experiments."""
 
 import csv
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional
@@ -34,6 +35,8 @@ class EvaluationResult:
     risk_score: float
     protection_enabled: bool
     triggered_rules: List[str]
+    guarded_latency_ms: float
+    unguarded_latency_ms: float
     guarded_response: str
     unguarded_response: str
 
@@ -81,6 +84,8 @@ class EvaluationRunner:
                     "risk_score",
                     "protection_enabled",
                     "triggered_rules",
+                    "guarded_latency_ms",
+                    "unguarded_latency_ms",
                     "guarded_response",
                     "unguarded_response",
                 ],
@@ -97,6 +102,8 @@ class EvaluationRunner:
                         "risk_score": result.risk_score,
                         "protection_enabled": result.protection_enabled,
                         "triggered_rules": ",".join(result.triggered_rules),
+                        "guarded_latency_ms": "%.2f" % result.guarded_latency_ms,
+                        "unguarded_latency_ms": "%.2f" % result.unguarded_latency_ms,
                         "guarded_response": result.guarded_response,
                         "unguarded_response": result.unguarded_response,
                     }
@@ -108,7 +115,9 @@ class EvaluationRunner:
             user_text=example.prompt_text,
             metadata={"evaluation_id": example.example_id},
         )
+        guarded_started_at = time.perf_counter()
         guarded_run = self.agent.run(turn)
+        guarded_latency_ms = (time.perf_counter() - guarded_started_at) * 1000.0
 
         unguarded_assessment = EthicalAssessment(
             is_vulnerable=False,
@@ -118,10 +127,12 @@ class EvaluationRunner:
         )
         unguarded_system_prompt = build_system_prompt(unguarded_assessment)
         unguarded_user_prompt = build_user_prompt(turn)
+        unguarded_started_at = time.perf_counter()
         unguarded_response = self.agent.llm_client.generate(
             system_prompt=unguarded_system_prompt,
             user_prompt=unguarded_user_prompt,
         )
+        unguarded_latency_ms = (time.perf_counter() - unguarded_started_at) * 1000.0
 
         return EvaluationResult(
             example_id=example.example_id,
@@ -131,6 +142,8 @@ class EvaluationRunner:
             risk_score=guarded_run.assessment.risk_score,
             protection_enabled=guarded_run.assessment.protection_enabled,
             triggered_rules=guarded_run.assessment.triggered_rules,
+            guarded_latency_ms=guarded_latency_ms,
+            unguarded_latency_ms=unguarded_latency_ms,
             guarded_response=guarded_run.response_text,
             unguarded_response=unguarded_response,
         )

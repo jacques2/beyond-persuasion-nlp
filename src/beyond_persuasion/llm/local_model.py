@@ -17,8 +17,11 @@ class LocalLLMConfig:
 
     backend: str = "mock"
     model_path: Optional[str] = None
+    chat_format: Optional[str] = None
     max_tokens: int = 256
     temperature: float = 0.3
+    n_ctx: int = 2048
+    n_gpu_layers: int = -1
 
     def __post_init__(self) -> None:
         self.backend = self.backend.strip().lower()
@@ -31,6 +34,9 @@ class LocalLLMConfig:
 
         if self.temperature < 0.0:
             raise ValueError("temperature must be non-negative")
+
+        if self.n_ctx <= 0:
+            raise ValueError("n_ctx must be greater than 0")
 
 
 class LocalLLMClient:
@@ -63,11 +69,19 @@ class LocalLLMClient:
                 "cannot be created."
             ) from exc
 
-        return Llama(
-            model_path=self.config.model_path,
-            chat_format="chatml",
-            verbose=False,
-        )
+        model_kwargs = {
+            "model_path": self.config.model_path,
+            "verbose": False,
+            "n_ctx": self.config.n_ctx,
+            "n_gpu_layers": self.config.n_gpu_layers,
+        }
+
+        # If chat_format is not provided, llama-cpp-python can use the
+        # GGUF chat template metadata automatically when available.
+        if self.config.chat_format:
+            model_kwargs["chat_format"] = self.config.chat_format
+
+        return Llama(**model_kwargs)
 
     def _generate_with_llama_cpp(self, system_prompt: str, user_prompt: str) -> str:
         """Run generation through the llama-cpp chat completion API."""

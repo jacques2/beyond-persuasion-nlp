@@ -74,8 +74,11 @@ class SafeConversationAgent:
             LocalLLMConfig(
                 backend=str(llm_config.get("backend", "mock")),
                 model_path=_normalize_optional_string(llm_config.get("model_path")),
+                chat_format=_normalize_optional_string(llm_config.get("chat_format")),
                 max_tokens=int(llm_config.get("max_tokens", 256)),
                 temperature=float(llm_config.get("temperature", 0.3)),
+                n_ctx=int(llm_config.get("n_ctx", 2048)),
+                n_gpu_layers=int(llm_config.get("n_gpu_layers", -1)),
             )
         )
 

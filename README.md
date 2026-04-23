@@ -121,6 +121,7 @@ The demo prints:
 
 The current test suite covers:
 
+- affective pipeline label projection
 - ethical engine behavior
 - end-to-end guarded agent behavior
 - the evaluation runner
@@ -129,6 +130,7 @@ Run all tests with:
 
 ```bash
 PYTHONPATH=src python3 -m unittest \
+  tests.unit.test_affective_pipeline \
   tests.unit.test_ethics_engine \
   tests.integration.test_guarded_agent \
   tests.integration.test_evaluation_runner -v
@@ -149,6 +151,25 @@ The relevant code is in:
 
 - [dataset.py](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/src/beyond_persuasion/evaluation/dataset.py)
 - [runner.py](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/src/beyond_persuasion/evaluation/runner.py)
+
+## Run the Real Benchmark
+
+If you have installed the optional ML and local LLM dependencies and placed a GGUF model in
+`models/`, you can reproduce the final benchmark with:
+
+```bash
+.venv/bin/python scripts/run_real_benchmarks.py
+```
+
+This generates:
+
+- [affective_backend_comparison.csv](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/artifacts/benchmarks/affective_backend_comparison.csv)
+- [benchmark_summary.json](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/artifacts/benchmarks/benchmark_summary.json)
+- [transformer_llama_cpp_results.csv](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/artifacts/evaluation/transformer_llama_cpp_results.csv)
+
+The benchmark defaults are also captured in:
+
+- [real_benchmark.yaml](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/configs/real_benchmark.yaml)
 
 ## Dependency Notes
 

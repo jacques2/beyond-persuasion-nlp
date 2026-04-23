@@ -1,0 +1,27 @@
+project:
+  name: beyond-persuasion-nlp
+  description: Real benchmark configuration with transformer affective analysis and local GGUF generation.
+
+affective:
+  model_name: "SamLowe/roberta-base-go_emotions"
+  use_transformers: true
+
+ethics:
+  primary_emotion_threshold: 0.60
+  combined_emotion_threshold: 0.70
+  minimum_confidence_for_flag: 0.55
+  enable_guardrail: true
+  mode: "rule_based"
+
+llm:
+  backend: "llama_cpp"
+  model_path: "models/Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf"
+  chat_format: null
+  max_tokens: 128
+  temperature: 0.0
+  n_ctx: 2048
+  n_gpu_layers: -1
+
+evaluation:
+  prompts_path: "data/evaluation/prompts.csv"
+  outputs_dir: "artifacts/evaluation"

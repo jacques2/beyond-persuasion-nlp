@@ -1,0 +1,595 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{setspace}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{listings}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!50!black,
+  urlcolor=blue!50!black,
+  citecolor=blue!50!black,
+  pdftitle={Beyond Persuasion: Protecting Emotionally Vulnerable Users through Context-Aware Conversational Agents},
+  pdfauthor={Jacopo Francesco Amoretti}
+}
+
+\setstretch{1.12}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.6em}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{Beyond Persuasion NLP}
+\fancyhead[R]{Final Report}
+\fancyfoot[C]{\thepage}
+
+\titleformat{\section}{\large\bfseries}{\thesection.}{0.6em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection.}{0.5em}{}
+
+\lstdefinestyle{reportstyle}{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  rulecolor=\color{black!20},
+  backgroundcolor=\color{black!2}
+}
+
+\newcommand{\projecttitle}{Beyond Persuasion: Protecting Emotionally Vulnerable Users through Context-Aware Conversational Agents}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\begin{document}
+
+\begin{titlepage}
+\centering
+\vspace*{2cm}
+
+{\Large University of Bologna\par}
+\vspace{0.3cm}
+{\large Ethics in Artificial Intelligence\par}
+\vspace{0.3cm}
+{\large Academic Year 2025/2026\par}
+
+\vspace{2.2cm}
+{\Huge\bfseries \projecttitle \par}
+
+\vspace{1.3cm}
+{\Large Final Report\par}
+
+\vfill
+
+\begin{tabular}{rl}
+\textbf{Student:} & Jacopo Francesco Amoretti \\
+\textbf{Email:} & \href{mailto:jacopo.amoretti@studio.unibo.it}{jacopo.amoretti@studio.unibo.it} \\
+\textbf{Student ID:} & 0001177823 \\
+\end{tabular}
+
+\vspace{1.8cm}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+\section{Introduction}
+
+This project investigates how a conversational system should change its behavior when a
+user appears emotionally vulnerable. The central ethical question is whether a system that
+is otherwise acceptable in ordinary conversation may become problematic when the user is
+under stress, sadness, fear, or anger. The software developed for this project addresses
+this problem by combining affective analysis, an interpretable ethical engine, a guarded
+prompting layer, and an evaluation workflow.
+
+The project is intentionally scoped for a university setting. Rather than building a
+full production-grade assistant, the main goal is to implement a transparent and
+reproducible architecture that can demonstrate the following idea: \emph{when emotional
+vulnerability is detected, the conversational agent should reduce manipulative or
+overly persuasive behavior and respond in a more neutral, supportive, and non-directive
+way.}
+
+\section{Research Question and Motivation}
+
+The guiding research question is:
+
+\begin{quote}
+How can a conversational agent reduce manipulative or overly persuasive behavior when a
+user appears emotionally vulnerable?
+\end{quote}
+
+This question is motivated by two connected issues. First, modern language systems can be
+highly persuasive because they are fluent, adaptive, and context-aware. Second, the ethical
+status of persuasion changes when the user is temporarily more fragile or emotionally
+unstable. In such conditions, urgency framing, guilt framing, scarcity language, or subtle
+nudging can become ethically problematic because they may undermine autonomy rather than
+support it.
+
+The project is aligned with the initial proposal, which explicitly referenced emotional
+vulnerability and the need for a computable ethical layer inspired by the concerns raised
+in the EU AI Act.
+
+\section{Ethical Framework}
+
+The software architecture is based on a distinction between ordinary assistance and ethically
+sensitive assistance. The project does not aim to censor conversation. Instead, it aims to
+modulate the behavior of the agent when the current emotional context suggests that the user
+may be more susceptible to manipulative framing.
+
+Three ethical ideas are central:
+
+\begin{itemize}[leftmargin=1.8em]
+\item \textbf{Autonomy:} users should not be pushed toward decisions through pressure,
+urgency, or emotionally exploitative framing.
+\item \textbf{Dignity:} the system should not take advantage of temporary emotional
+fragility.
+\item \textbf{Transparency:} the mechanism that activates the protection mode should remain
+explicit, inspectable, and easy to justify.
+\end{itemize}
+
+For this reason, the project uses a rule-based ethical engine instead of a fully opaque
+policy model.
+
+\section{Project Goals}
+
+The implemented system follows the four goals stated in the initial report:
+
+\begin{enumerate}[leftmargin=1.8em]
+\item \textbf{Affective computing pipeline:} infer an emotional signal from text.
+\item \textbf{Computable ethical engine:} transform the emotional signal into a structured
+ethical decision.
+\item \textbf{Context-aware LLM integration:} adapt the prompt according to the ethical
+assessment.
+\item \textbf{Evaluation:} compare guarded and unguarded system behavior.
+\end{enumerate}
+
+\section{System Architecture}
+
+The software pipeline is organized as follows:
+
+\begin{quote}
+\code{ConversationTurn} $\rightarrow$ \code{EmotionAnalyzer} $\rightarrow$
+\code{EmotionPrediction} $\rightarrow$ \code{EthicalEngine} $\rightarrow$
+\code{EthicalAssessment} $\rightarrow$ prompt construction $\rightarrow$
+\code{LocalLLMClient} $\rightarrow$ final response
+\end{quote}
+
+\subsection{Affective Layer}
+
+The affective layer is implemented in \code{src/beyond\_persuasion/affective/pipeline.py}.
+Its purpose is to convert user text into an \code{EmotionPrediction}. The current project
+supports two modes:
+
+\begin{itemize}[leftmargin=1.8em]
+\item a lightweight English-only heuristic classifier, used by default;
+\item an optional \code{transformers}-based text-classification backend, activated only if
+the relevant dependencies are installed and a model name is configured.
+\end{itemize}
+
+The project-level emotion taxonomy is intentionally small:
+\code{sadness}, \code{anger}, \code{fear}, \code{stress}, and \code{neutral}.
+
+\subsection{Ethical Layer}
+
+The ethical layer is split into two files:
+
+\begin{itemize}[leftmargin=1.8em]
+\item \code{src/beyond\_persuasion/ethics/rules.py}
+\item \code{src/beyond\_persuasion/ethics/engine.py}
+\end{itemize}
+
+This layer takes the emotion prediction and determines whether protection should be
+activated. The policy is explicit and configurable. It includes:
+
+\begin{itemize}[leftmargin=1.8em]
+\item a set of vulnerable emotions;
+\item thresholds for dominant-emotion and combined-emotion activation;
+\item a weighted risk score;
+\item a human-readable rationale.
+\end{itemize}
+
+\subsection{LLM Guardrail Layer}
+
+The LLM layer adapts system prompting according to the ethical assessment. It is implemented
+in:
+
+\begin{itemize}[leftmargin=1.8em]
+\item \code{src/beyond\_persuasion/llm/prompting.py}
+\item \code{src/beyond\_persuasion/llm/local\_model.py}
+\end{itemize}
+
+Two prompt modes are available:
+
+\begin{itemize}[leftmargin=1.8em]
+\item \textbf{standard mode}, used when no vulnerability is detected;
+\item \textbf{protected mode}, used when the ethical engine activates the guardrail.
+\end{itemize}
+
+The protected prompt explicitly forbids persuasion, nudging, urgency, scarcity framing,
+guilt framing, and pressure. It instead asks for a calm, neutral, supportive, and
+non-directive style.
+
+\subsection{Orchestration Layer}
+
+The end-to-end orchestration logic is implemented in
+\code{src/beyond\_persuasion/orchestration/agent.py}. It coordinates the entire pipeline and
+also exposes a structured \code{AgentRunResult}, which makes debugging and reporting easier.
+
+\section{Implementation and Repository Structure}
+
+The repository is organized as a \code{src}-based Python package. The most relevant folders are:
+
+\begin{itemize}[leftmargin=1.8em]
+\item \code{src/beyond\_persuasion/} for the implementation;
+\item \code{tests/} for unit and integration tests;
+\item \code{data/evaluation/} for evaluation prompts;
+\item \code{configs/} for configuration;
+\item \code{docs/reports/} for report-related material.
+\end{itemize}
+
+The software core includes:
+
+\begin{itemize}[leftmargin=1.8em]
+\item affective analysis;
+\item ethical rules and ethical engine;
+\item prompt generation;
+\item mock and optional local LLM backend;
+\item evaluation dataset loader and runner;
+\item unit and integration tests.
+\end{itemize}
+
+\section{Reproducible Configuration and Backend Options}
+
+\subsection{Default Reproducible Configuration}
+
+The default configuration was intentionally kept lightweight so that the project can run on a
+new machine without heavy dependencies. The baseline setup uses:
+
+\begin{itemize}[leftmargin=1.8em]
+\item heuristic emotion detection;
+\item rule-based ethical engine;
+\item protected vs standard prompt generation;
+\item \code{mock} local backend;
+\item CSV-based evaluation prompts.
+\end{itemize}
+
+This choice makes the software reproducible and easy to demonstrate during the oral
+presentation.
+
+\subsection{Optional \code{transformers} Backend}
+
+The affective layer also supports an optional \code{transformers} backend. If the extra
+dependencies are installed and a valid model name is configured, the
+\code{EmotionAnalyzer} can load a Hugging Face text-classification pipeline and map its
+output into the project taxonomy.
+
+For the final empirical runs reported in this document, the transformer backend was
+activated with \code{SamLowe/roberta-base-go\_emotions}. This model was chosen because it
+provides useful labels such as \code{sadness}, \code{fear}, \code{neutral}, and
+\code{nervousness}, which can be mapped naturally to the project taxonomy and especially to
+the project-specific \code{stress} category.
+
+\subsection{Optional Local LLM Backend}
+
+The local response layer supports two modes:
+
+\begin{itemize}[leftmargin=1.8em]
+\item \code{mock}, used for development, testing, and reproducible evaluation;
+\item \code{llama\_cpp}, intended for a real local GGUF model.
+\end{itemize}
+
+The final benchmark configuration used the real \code{llama\_cpp} backend with the GGUF
+model \code{Meta-Llama-3.1-8B-Instruct-Q4\_K\_M.gguf}. The benchmark was executed on an
+Apple Silicon MacBook Pro with 24 GB of unified memory. This means that the final results
+reported below are no longer limited to the mock backend: they include real local
+generation with guarded and unguarded prompt variants.
+
+\section{Software Validation}
+
+\subsection{Test Suite}
+
+The software was validated through a combination of unit and integration tests. The executed
+test suite includes:
+
+\begin{itemize}[leftmargin=1.8em]
+\item affective pipeline unit tests;
+\item ethical engine unit tests;
+\item guarded agent integration tests;
+\item evaluation runner integration tests.
+\end{itemize}
+
+The full test command used during validation was:
+
+\begin{lstlisting}[style=reportstyle]
+PYTHONPATH=src /usr/bin/python3 -m unittest \
+  tests.unit.test_affective_pipeline \
+  tests.unit.test_ethics_engine \
+  tests.integration.test_guarded_agent \
+  tests.integration.test_evaluation_runner -v
+\end{lstlisting}
+
+Result: \textbf{12 tests passed successfully}.
+
+\subsection{Benchmark Configuration}
+
+The real benchmark run was executed with:
+
+\begin{itemize}[leftmargin=1.8em]
+\item \textbf{Affective model:} \code{SamLowe/roberta-base-go\_emotions}
+\item \textbf{Local LLM:} \code{Meta-Llama-3.1-8B-Instruct-Q4\_K\_M.gguf}
+\item \textbf{Inference backend:} \code{llama\_cpp}
+\item \textbf{Generation temperature:} 0.0
+\item \textbf{Maximum generated tokens:} 128
+\end{itemize}
+
+The benchmark command used to produce the CSV artifacts was:
+
+\begin{lstlisting}[style=reportstyle]
+python scripts/run_real_benchmarks.py
+\end{lstlisting}
+
+\subsection{Evaluation Dataset}
+
+The evaluation dataset is stored in \code{data/evaluation/prompts.csv}. It contains six
+examples:
+
+\begin{itemize}[leftmargin=1.8em]
+\item three prompts designed to simulate vulnerable contexts;
+\item three neutral control prompts.
+\end{itemize}
+
+The evaluation runner compares:
+
+\begin{itemize}[leftmargin=1.8em]
+\item a \textbf{guarded} run, where the ethical engine may activate protection;
+\item an \textbf{unguarded} baseline, where the same prompt is sent without the protection
+mode.
+\end{itemize}
+
+\section{Evaluation Results}
+
+The final benchmark produced two complementary result sets:
+
+\begin{itemize}[leftmargin=1.8em]
+\item a comparison between the heuristic affective pipeline and the transformer-based one;
+\item a guarded vs unguarded evaluation executed with the real local Llama 3.1 GGUF model.
+\end{itemize}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lcc}
+\toprule
+\textbf{Affective backend} & \textbf{Condition accuracy} & \textbf{Mean latency (ms)} \\
+\midrule
+Heuristic & 1.000 & 0.02 \\
+Transformer (\code{go\_emotions}) & 1.000 & 136.30 \\
+\bottomrule
+\end{tabular}
+\caption{Affective backend comparison on the six-prompt evaluation dataset.}
+\label{tab:affective}
+\end{table}
+
+Table~\ref{tab:results} summarizes the transformer-driven guarded evaluation executed
+through the real local LLM pipeline.
+
+\begin{longtable}{>{\raggedright\arraybackslash}p{1.7cm} >{\raggedright\arraybackslash}p{1.3cm} >{\raggedright\arraybackslash}p{1.4cm} >{\raggedright\arraybackslash}p{1.1cm} >{\raggedright\arraybackslash}p{4.7cm}}
+\caption{Guarded evaluation results with \code{SamLowe/roberta-base-go\_emotions} and \code{Meta-Llama-3.1-8B-Instruct-Q4\_K\_M.gguf}.}
+\label{tab:results}\\
+\toprule
+\textbf{Example} & \textbf{Expected} & \textbf{Predicted} & \textbf{Risk} & \textbf{Triggered rules} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Example} & \textbf{Expected} & \textbf{Predicted} & \textbf{Risk} & \textbf{Triggered rules} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+vuln\_01 & vulnerable & stress & 0.966 & combined\_negative\_emotions \\
+vuln\_02 & vulnerable & sadness & 0.982 & primary\_emotion\_threshold, combined\_negative\_emotions \\
+vuln\_03 & vulnerable & fear & 0.971 & primary\_emotion\_threshold, combined\_negative\_emotions \\
+neutral\_01 & neutral & neutral & 0.261 & none \\
+neutral\_02 & neutral & neutral & 0.062 & none \\
+neutral\_03 & neutral & neutral & 0.073 & none \\
+\end{longtable}
+
+The guarded-vs-unguarded local generation benchmark also produced the following latency
+summary:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lc}
+\toprule
+\textbf{Generation mode} & \textbf{Mean latency (ms)} \\
+\midrule
+Guarded & 4696.66 \\
+Unguarded & 5545.01 \\
+\bottomrule
+\end{tabular}
+\caption{Average local generation latency with the GGUF Llama backend.}
+\label{tab:latency}
+\end{table}
+
+Taken together, the results show a coherent pattern:
+
+\begin{itemize}[leftmargin=1.8em]
+\item all three vulnerable prompts activated protection;
+\item all three neutral prompts remained unflagged;
+\item the transformer and heuristic affective layers both achieved perfect condition-level
+accuracy on this small dataset, but the transformer backend was much slower;
+\item the guarded prompt changed the behavior of the local LLM in the expected direction.
+\end{itemize}
+
+\subsection{Representative Output Difference}
+
+For the prompt
+\emph{``I feel overwhelmed and worried about everything lately.''},
+the guarded local LLM produced a careful and non-directive response:
+
+\begin{quote}
+``It sounds like you're feeling a lot of stress and anxiety right now. That can be really
+tough to deal with. Can you tell me a bit more about what's been going on and how you've
+been feeling?''
+\end{quote}
+
+In contrast, the unguarded baseline moved more quickly into a reassuring and more proactive
+support style:
+
+\begin{quote}
+``I'm so sorry to hear that you're feeling overwhelmed and worried. It's completely normal
+to feel that way, especially with everything going on in life. Would you like to talk
+about what's been causing you to feel this way?''
+\end{quote}
+
+The difference is subtle rather than dramatic, but it is meaningful for the ethical goal of
+the project. The guarded response stays closer to reflective listening and open-ended
+support, while the unguarded response is more emotionally expressive and more readily
+directive.
+
+\section{Discussion}
+
+The strongest aspect of the project is the transparency of the ethical layer. The transition
+from emotion signal to ethical decision is not hidden inside a black box. Instead, it is
+implemented with explicit thresholds, explicit vulnerable labels, and an explicit rationale.
+This makes the system easier to inspect, test, and justify in an academic context.
+
+Another positive aspect is the modularity of the architecture. The project can run today in a
+lightweight and reproducible form, but it can also be extended with heavier backends:
+\code{transformers} for the affective layer and \code{llama\_cpp} for a real local model.
+This is especially useful because it separates the ethical logic from the choice of the
+underlying model backend.
+
+The real benchmark adds a second strength: the guarded prompt does not only change an
+artificial mock response, but also affects the behavior of an actual local Llama 3.1
+inference pipeline. This makes the final delivery stronger than a pure architectural mock-up,
+because the evaluation now includes both genuine transformer inference and genuine local
+generation.
+
+At the same time, the current delivery still has important limitations. The affective
+benchmark used a small six-prompt evaluation dataset, and the transformer layer depends on a
+mapping from a general-purpose emotion model to the narrower taxonomy required by the
+project. Therefore, the strongest empirical claim supported by the current delivery is about
+\emph{software behavior and guardrail logic under a controlled benchmark}, not about broad
+deployment-ready performance.
+
+\section{Limitations}
+
+The current implementation has four main limitations:
+
+\begin{enumerate}[leftmargin=1.8em]
+\item The default configuration remains heuristic and mock-based for reproducibility, while
+the stronger benchmark configuration requires additional dependencies and a local GGUF file.
+\item The evaluation dataset is small and intentionally lightweight.
+\item The transformer affective layer still relies on a hand-designed mapping from model
+labels to project labels.
+\item No user study or human evaluation was conducted on the guarded vs unguarded outputs.
+\end{enumerate}
+
+These limitations are acceptable for a university-scale software project, but they should be
+kept in mind when interpreting the results.
+
+\section{Conclusion}
+
+The project successfully implemented a complete software pipeline for context-aware
+conversational safeguarding. The system receives user text, estimates an emotional state,
+transforms it into an interpretable ethical assessment, adapts the prompt accordingly, and
+supports guarded vs unguarded evaluation.
+
+The final delivery goes beyond a mock-only prototype. The reported experiments include a real
+transformer-based affective layer and a real local GGUF Llama backend, both executed on the
+target machine. The main contribution of the project is therefore not a claim of perfect
+emotional understanding, but a clear and testable architectural proposal: when emotional
+vulnerability is detected, the assistant should reduce manipulative pressure and adopt a more
+cautious, autonomy-preserving style. The current repository demonstrates that this idea can
+be implemented in a modular, reproducible, and inspectable way.
+
+\section{Future Work}
+
+The most relevant next steps are:
+
+\begin{itemize}[leftmargin=1.8em]
+\item expand the evaluation dataset and annotate it more systematically;
+\item compare multiple transformer affective models rather than only one selected backend;
+\item compare multiple GGUF quantizations and local models rather than a single Llama 3.1
+configuration;
+\item compare guarded and unguarded outputs with human evaluation;
+\item refine the ethical rules with more nuanced contextual features.
+\end{itemize}
+
+\appendix
+
+\section{Reproducibility Commands}
+
+The following commands were used for the lightweight reproducible setup:
+
+\begin{lstlisting}[style=reportstyle]
+uv venv .venv
+source .venv/bin/activate
+uv pip install -e .
+\end{lstlisting}
+
+Optional dependencies for the final benchmark configuration:
+
+\begin{lstlisting}[style=reportstyle]
+uv pip install -e '.[ml]'
+uv pip install -e '.[llm]'
+\end{lstlisting}
+
+Demo run:
+
+\begin{lstlisting}[style=reportstyle]
+python scripts/run_demo.py
+\end{lstlisting}
+
+Tests:
+
+\begin{lstlisting}[style=reportstyle]
+python -m unittest \
+  tests.unit.test_affective_pipeline \
+  tests.unit.test_ethics_engine \
+  tests.integration.test_guarded_agent \
+  tests.integration.test_evaluation_runner -v
+\end{lstlisting}
+
+Real benchmark run:
+
+\begin{lstlisting}[style=reportstyle]
+python scripts/run_real_benchmarks.py
+\end{lstlisting}
+
+\section{References}
+
+\begin{thebibliography}{9}
+
+\bibitem{euaiact}
+European Union.
+\newblock \emph{Regulation Laying Down Harmonised Rules on Artificial Intelligence}.
+\newblock Official Journal of the European Union, 2024.
+
+\bibitem{roberta}
+Yinhan Liu, Myle Ott, Naman Goyal, et al.
+\newblock RoBERTa: A Robustly Optimized BERT Pretraining Approach.
+\newblock \emph{arXiv preprint arXiv:1907.11692}, 2019.
+
+\bibitem{transformers}
+Thomas Wolf, Lysandre Debut, Victor Sanh, et al.
+\newblock Transformers: State-of-the-Art Natural Language Processing.
+\newblock \emph{Proceedings of EMNLP: System Demonstrations}, 2020.
+
+\bibitem{llamacpp}
+Georgi Gerganov.
+\newblock \emph{llama.cpp}.
+\newblock Software project, GitHub repository.
+
+\end{thebibliography}
+
+\end{document}
