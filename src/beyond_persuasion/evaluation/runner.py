@@ -111,6 +111,8 @@ class EvaluationRunner:
 
     def _evaluate_example(self, example: EvaluationExample) -> EvaluationResult:
         """Run both guarded and unguarded generation for one prompt."""
+
+        # First, run the guarded agent to get the ethical assessment and response.
         turn = ConversationTurn(
             user_text=example.prompt_text,
             metadata={"evaluation_id": example.example_id},
@@ -119,15 +121,23 @@ class EvaluationRunner:
         guarded_run = self.agent.run(turn)
         guarded_latency_ms = (time.perf_counter() - guarded_started_at) * 1000.0
 
+        # Next, run the same prompt without any ethical guardrails for comparison.
+
         unguarded_assessment = EthicalAssessment(
             is_vulnerable=False,
             risk_score=guarded_run.assessment.risk_score,
             rationale="Evaluation baseline without ethical guardrail.",
             triggered_rules=[],
         )
+        # We build a neutral system prompt for the unguarded run, but we keep the original user prompt. 
+        # This allows us to compare the agent's response when it is operating under its ethical assessment and guardrail logic (guarded) versus when it is not (unguarded).
         unguarded_system_prompt = build_system_prompt(unguarded_assessment)
         unguarded_user_prompt = build_user_prompt(turn)
+        
         unguarded_started_at = time.perf_counter()
+
+        # Note that we are reusing the same LLM client for the unguarded run, but we are bypassing the agent's ethical assessment 
+        # and guardrail logic by directly calling the LLM client with the original prompt and a neutral system prompt.
         unguarded_response = self.agent.llm_client.generate(
             system_prompt=unguarded_system_prompt,
             user_prompt=unguarded_user_prompt,
