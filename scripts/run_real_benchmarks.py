@@ -71,6 +71,8 @@ def benchmark_affective_backends(
                 "latency_ms": "%.2f" % latency_ms,
             }
             rows.append(row)
+
+            # I need this because talency is a string in the row, but I want to keep it as a float for summary calculations.
             backend_rows.append(
                 {
                     "latency_ms": latency_ms,
@@ -192,6 +194,8 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     """Run both benchmark suites and save their outputs."""
+
+    # Parsing arguments and validating GGUF model path before starting benchmarks to fail fast if there's a configuration issue.
     args = parse_args()
 
     if not args.gguf_path.exists():
@@ -215,6 +219,8 @@ def main() -> None:
     )
 
     summary_output.parent.mkdir(parents=True, exist_ok=True)
+
+    # Save a combined summary of both benchmarks for easy reference in the final report.
     summary_output.write_text(
         json.dumps(
             {

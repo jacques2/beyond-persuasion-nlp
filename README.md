@@ -101,6 +101,12 @@ Optional local GGUF backend:
 python3 -m pip install -e ".[llm]"
 ```
 
+Presentation notebook extras:
+
+```bash
+python3 -m pip install -e ".[presentation]"
+```
+
 ## Run the Demo
 
 The demo uses the `mock` LLM backend, so it works even without a real local model:
@@ -170,6 +176,26 @@ This generates:
 The benchmark defaults are also captured in:
 
 - [real_benchmark.yaml](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/configs/real_benchmark.yaml)
+
+## Run the Presentation Notebook
+
+The oral-presentation notebook is:
+
+- [presentation_demo.ipynb](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/docs/presentation_demo.ipynb)
+
+To run it comfortably inside the project virtual environment:
+
+```bash
+uv pip install -e '.[presentation]'
+.venv/bin/python -m ipykernel install --user --name beyond-persuasion --display-name "Beyond Persuasion (.venv)"
+```
+
+Then open Jupyter or VS Code and select the kernel named:
+
+- `Beyond Persuasion (.venv)`
+
+This matters because otherwise the notebook may use the system Python and fail to find
+packages such as `pandas` or `matplotlib` even if they are installed in `.venv`.
 
 ## Dependency Notes
 
