@@ -105,12 +105,21 @@ class LocalLLMClient:
         This mode is useful before connecting a real model because it lets the
         rest of the pipeline run end-to-end.
         """
-        if "protection mode" in system_prompt.lower():
+        lowered_prompt = system_prompt.lower()
+
+        if "protection mode" in lowered_prompt:
             return (
                 "I understand that this may be a sensitive moment. "
                 "I will respond carefully and avoid pushing you toward any "
                 "decision. Could you tell me a bit more about what you need "
                 "right now?"
+            )
+
+        if "action-oriented" in lowered_prompt or "move quickly from uncertainty to action" in lowered_prompt:
+            return (
+                "You should take a clear next step and act on the plan you are considering. "
+                "If this idea matters to you, it makes sense to move forward decisively "
+                "instead of staying stuck in doubt."
             )
 
         return (

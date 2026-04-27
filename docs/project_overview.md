@@ -51,6 +51,7 @@ The LLM layer adapts prompting according to the ethical assessment.
 Current implementation:
 
 - standard system prompt
+- action-oriented baseline prompt for evaluation
 - protected system prompt
 - optional local GGUF backend through `llama_cpp`
 - deterministic `mock` backend for development and testing
@@ -62,12 +63,13 @@ Main files:
 
 ### 4. Evaluation Layer
 
-The evaluation layer compares guarded and unguarded behavior on a small prompt set.
+The evaluation layer compares guarded and unguarded behavior on a curated prompt set.
 
 Current implementation:
 
 - CSV-based dataset loading
 - guarded vs unguarded comparison runner
+- configurable non-protected baseline prompt profile
 - result export to CSV
 
 Main files:
@@ -103,14 +105,26 @@ The repository currently contains:
 - integration tests for the evaluation runner
 
 This gives coverage over the most important project logic, especially the
-decision-making behavior of the rule-based ethical layer.
+decision-making behavior of the rule-based ethical layer and the selection of
+the prompt profile used by the LLM layer.
+
+## Presentation Support
+
+For the oral presentation, the repository also includes:
+
+- a curated evaluation dataset with vulnerable, impulsive, mixed, and neutral examples
+- a lightweight notebook walkthrough in
+  [presentation_demo.ipynb](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/docs/presentation_demo.ipynb)
+
+The notebook focuses on the actual repository classes and functions rather than
+on a paper-style methodological analysis. This makes it easier to explain the
+project implementation step by step during the exam.
 
 ## Current Limitations
 
 - The affective module currently relies on a heuristic fallback unless a real
   transformer model is configured.
-- The mock local backend is useful for validating software behavior, but it is
-  not a substitute for a real local LLM.
+- The mock local backend is useful for validating software behavior and for a
+  presentation fallback, but it is not a substitute for a real local LLM.
 - The evaluation is intentionally lightweight and suitable for a university
   project rather than a large empirical benchmark.
-

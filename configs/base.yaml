@@ -22,3 +22,4 @@ llm:
 evaluation:
   prompts_path: "data/evaluation/prompts.csv"
   outputs_dir: "artifacts/evaluation"
+  baseline_prompt_profile: "standard"

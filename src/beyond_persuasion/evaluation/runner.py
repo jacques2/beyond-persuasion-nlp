@@ -22,6 +22,7 @@ class EvaluationRunnerConfig:
 
     dataset_path: Optional[Path] = None
     output_path: Optional[Path] = None
+    baseline_prompt_profile: str = "action_oriented"
 
 
 @dataclass
@@ -35,6 +36,7 @@ class EvaluationResult:
     risk_score: float
     protection_enabled: bool
     triggered_rules: List[str]
+    baseline_prompt_profile: str
     guarded_latency_ms: float
     unguarded_latency_ms: float
     guarded_response: str
@@ -84,6 +86,7 @@ class EvaluationRunner:
                     "risk_score",
                     "protection_enabled",
                     "triggered_rules",
+                    "baseline_prompt_profile",
                     "guarded_latency_ms",
                     "unguarded_latency_ms",
                     "guarded_response",
@@ -102,6 +105,7 @@ class EvaluationRunner:
                         "risk_score": result.risk_score,
                         "protection_enabled": result.protection_enabled,
                         "triggered_rules": ",".join(result.triggered_rules),
+                        "baseline_prompt_profile": result.baseline_prompt_profile,
                         "guarded_latency_ms": "%.2f" % result.guarded_latency_ms,
                         "unguarded_latency_ms": "%.2f" % result.unguarded_latency_ms,
                         "guarded_response": result.guarded_response,
@@ -129,9 +133,13 @@ class EvaluationRunner:
             rationale="Evaluation baseline without ethical guardrail.",
             triggered_rules=[],
         )
-        # We build a neutral system prompt for the unguarded run, but we keep the original user prompt. 
-        # This allows us to compare the agent's response when it is operating under its ethical assessment and guardrail logic (guarded) versus when it is not (unguarded).
-        unguarded_system_prompt = build_system_prompt(unguarded_assessment)
+        # The baseline can be either a standard helpful assistant or a more
+        # action-oriented one. The protected branch is still produced by the
+        # full guarded agent above.
+        unguarded_system_prompt = build_system_prompt(
+            unguarded_assessment,
+            prompt_profile=self.config.baseline_prompt_profile,
+        )
         unguarded_user_prompt = build_user_prompt(turn)
         
         unguarded_started_at = time.perf_counter()
@@ -152,6 +160,7 @@ class EvaluationRunner:
             risk_score=guarded_run.assessment.risk_score,
             protection_enabled=guarded_run.assessment.protection_enabled,
             triggered_rules=guarded_run.assessment.triggered_rules,
+            baseline_prompt_profile=self.config.baseline_prompt_profile,
             guarded_latency_ms=guarded_latency_ms,
             unguarded_latency_ms=unguarded_latency_ms,
             guarded_response=guarded_run.response_text,

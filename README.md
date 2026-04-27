@@ -18,7 +18,7 @@ The software core is complete and includes:
 
 - an affective pipeline with a heuristic fallback and optional `transformers` backend;
 - an interpretable ethical engine with explicit thresholds and rationales;
-- prompt generation for normal and protected interaction modes;
+- prompt generation for `standard`, `action_oriented`, and `protected` interaction modes;
 - a mock local LLM backend plus optional `llama_cpp` integration;
 - an end-to-end orchestrator;
 - unit and integration tests;
@@ -60,7 +60,7 @@ The main software flow is:
 user text
 -> emotion prediction
 -> ethical assessment
--> guarded or standard system prompt
+-> standard, action-oriented, or protected system prompt
 -> local LLM response
 ```
 
@@ -69,7 +69,7 @@ More specifically:
 - [pipeline.py](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/src/beyond_persuasion/affective/pipeline.py) converts text into an `EmotionPrediction`
 - [rules.py](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/src/beyond_persuasion/ethics/rules.py) defines the ethical policy
 - [engine.py](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/src/beyond_persuasion/ethics/engine.py) turns predictions into an `EthicalAssessment`
-- [prompting.py](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/src/beyond_persuasion/llm/prompting.py) builds standard or protected prompts
+- [prompting.py](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/src/beyond_persuasion/llm/prompting.py) builds standard, action-oriented, or protected prompts
 - [local_model.py](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/src/beyond_persuasion/llm/local_model.py) runs the selected local backend
 - [agent.py](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/src/beyond_persuasion/orchestration/agent.py) orchestrates the full process
 
@@ -129,6 +129,7 @@ The current test suite covers:
 
 - affective pipeline label projection
 - ethical engine behavior
+- prompt profile selection
 - end-to-end guarded agent behavior
 - the evaluation runner
 
@@ -138,6 +139,7 @@ Run all tests with:
 PYTHONPATH=src python3 -m unittest \
   tests.unit.test_affective_pipeline \
   tests.unit.test_ethics_engine \
+  tests.unit.test_prompting \
   tests.integration.test_guarded_agent \
   tests.integration.test_evaluation_runner -v
 ```
@@ -152,6 +154,10 @@ The evaluation runner compares:
 
 - a guarded run, where the ethical engine can activate protection
 - an unguarded baseline, where the same prompt is sent without the protection mode
+
+By default, the current evaluation runner uses an `action_oriented` non-protected baseline.
+This makes the behavioral difference more visible than a purely neutral baseline, which is
+useful because many instruction-tuned models are already quite cautious on sensitive prompts.
 
 The relevant code is in:
 
@@ -177,11 +183,21 @@ The benchmark defaults are also captured in:
 
 - [real_benchmark.yaml](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/configs/real_benchmark.yaml)
 
+The real benchmark uses an `action_oriented` non-protected baseline so that the contrast
+with the guarded prompt is easier to observe on emotionally sensitive examples.
+
 ## Run the Presentation Notebook
 
 The oral-presentation notebook is:
 
 - [presentation_demo.ipynb](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/docs/presentation_demo.ipynb)
+
+The notebook is intentionally simple: it walks through the main classes and functions of the
+project step by step, then closes with a very small batch evaluation.
+
+By default, the notebook uses the `mock` backend so that the live demo is fast and the
+prompt-profile difference is easy to see. You can switch it to the real GGUF backend by
+changing the `PREFER_LOCAL_LLM` flag inside the notebook.
 
 To run it comfortably inside the project virtual environment:
 
@@ -209,8 +225,8 @@ packages such as `pandas` or `matplotlib` even if they are installed in `.venv`.
 
 - The current affective analysis uses a heuristic fallback unless a real
   `transformers` model is configured.
-- The `mock` LLM backend is useful for development, but it is not a substitute
-  for a real local language model.
+- The `mock` LLM backend is useful for development and presentation fallback,
+  but it is not a substitute for a real local language model.
 - The evaluation pipeline is intentionally lightweight and meant for a
   university-scale project, not a production benchmark.
 

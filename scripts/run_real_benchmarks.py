@@ -19,6 +19,7 @@ DEFAULT_TRANSFORMER_MODEL = "SamLowe/roberta-base-go_emotions"
 DEFAULT_GGUF_PATH = Path("models/Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf")
 DEFAULT_BENCHMARK_DIR = Path("artifacts/benchmarks")
 DEFAULT_EVALUATION_DIR = Path("artifacts/evaluation")
+DEFAULT_BASELINE_PROMPT_PROFILE = "action_oriented"
 
 
 def benchmark_affective_backends(
@@ -115,6 +116,7 @@ def benchmark_local_llm(
     output_path: Path,
     transformer_model: str,
     gguf_path: Path,
+    baseline_prompt_profile: str,
 ) -> dict:
     """Run guarded vs unguarded evaluation with a real local GGUF model."""
     agent = SafeConversationAgent.from_config(
@@ -145,11 +147,13 @@ def benchmark_local_llm(
         config=EvaluationRunnerConfig(
             dataset_path=dataset_path,
             output_path=output_path,
+            baseline_prompt_profile=baseline_prompt_profile,
         ),
     )
     results = runner.run()
 
     return {
+        "baseline_prompt_profile": baseline_prompt_profile,
         "guarded_mean_latency_ms": round(mean(item.guarded_latency_ms for item in results), 2),
         "unguarded_mean_latency_ms": round(mean(item.unguarded_latency_ms for item in results), 2),
         "guarded_activations": sum(1 for item in results if item.protection_enabled),
@@ -189,6 +193,11 @@ def parse_args() -> argparse.Namespace:
         default=DEFAULT_EVALUATION_DIR,
         help="Directory for guarded vs unguarded evaluation outputs.",
     )
+    parser.add_argument(
+        "--baseline-prompt-profile",
+        default=DEFAULT_BASELINE_PROMPT_PROFILE,
+        help="Non-protected system prompt profile used for the unguarded baseline.",
+    )
     return parser.parse_args()
 
 
@@ -216,6 +225,7 @@ def main() -> None:
         output_path=local_llm_output,
         transformer_model=args.transformer_model,
         gguf_path=args.gguf_path,
+        baseline_prompt_profile=args.baseline_prompt_profile,
     )
 
     summary_output.parent.mkdir(parents=True, exist_ok=True)
@@ -226,6 +236,7 @@ def main() -> None:
             {
                 "transformer_model": args.transformer_model,
                 "gguf_path": str(args.gguf_path),
+                "baseline_prompt_profile": args.baseline_prompt_profile,
                 "affective_summary": affective_summary,
                 "local_llm_summary": local_llm_summary,
             },

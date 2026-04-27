@@ -1,6 +1,6 @@
 PYTHON ?= python3
 
-.PHONY: install install-dev test lint format run-demo
+.PHONY: install install-dev test lint format run-demo run-realbenchmark
 
 install:
 	$(PYTHON) -m pip install -e .
@@ -19,3 +19,6 @@ format:
 
 run-demo:
 	$(PYTHON) scripts/run_demo.py
+
+run-realbenchmark:
+	$(PYTHON) scripts/run_real_benchmark.py
