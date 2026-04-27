@@ -113,19 +113,18 @@ the prompt profile used by the LLM layer.
 For the oral presentation, the repository also includes:
 
 - a curated evaluation dataset with vulnerable, impulsive, mixed, and neutral examples
-- a smaller presentation-safe subset in
-  [presentation_prompts.csv](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/data/evaluation/presentation_prompts.csv)
 - a lightweight notebook walkthrough in
   [presentation_demo.ipynb](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/docs/presentation_demo.ipynb)
 
 The notebook focuses on the actual repository classes and functions rather than
 on a paper-style methodological analysis. This makes it easier to explain the
-project implementation step by step during the exam. The presentation subset is
-paired with the `commercial` baseline so that a real local Llama model can
-visibly produce more direct, conversion-oriented advice when unguarded, while the
-protected branch becomes cautious and autonomy-preserving. The standard baseline
-is still useful as a comparison point because modern instruction-tuned models
-often already contain internal safety behavior.
+project implementation step by step during the exam. It reads the same
+`data/evaluation/prompts.csv` file used by the benchmark and filters selected
+`example_id` values in memory. This keeps the final report and oral demo aligned:
+the full benchmark evaluates the full dataset, while the notebook shows a small
+representative slice of the same experiment. The standard baseline is still
+useful as a comparison point because modern instruction-tuned models often
+already contain internal safety behavior.
 
 ## Current Limitations
 

@@ -6,6 +6,7 @@ import json
 import time
 from pathlib import Path
 from statistics import mean
+from typing import List, Optional
 
 from beyond_persuasion.affective.pipeline import EmotionAnalyzer, EmotionAnalyzerConfig
 from beyond_persuasion.ethics.engine import EthicalEngine
@@ -26,9 +27,20 @@ def benchmark_affective_backends(
     dataset_path: Path,
     output_path: Path,
     transformer_model: str,
+    example_ids: Optional[List[str]] = None,
 ) -> dict:
     """Compare heuristic and transformers-based affective prediction."""
     examples = load_evaluation_examples(dataset_path)
+    if example_ids:
+        requested_ids = set(example_ids)
+        examples = [example for example in examples if example.example_id in requested_ids]
+        selected_ids = {example.example_id for example in examples}
+        missing_ids = sorted(requested_ids - selected_ids)
+        if missing_ids:
+            raise ValueError(
+                "Unknown evaluation example_id values: %s" % ", ".join(missing_ids)
+            )
+
     engine = EthicalEngine(EthicalRulesConfig())
 
     analyzers = {
@@ -117,6 +129,7 @@ def benchmark_local_llm(
     transformer_model: str,
     gguf_path: Path,
     baseline_prompt_profile: str,
+    example_ids: Optional[List[str]] = None,
 ) -> dict:
     """Run guarded vs unguarded evaluation with a real local GGUF model."""
     agent = SafeConversationAgent.from_config(
@@ -148,6 +161,7 @@ def benchmark_local_llm(
             dataset_path=dataset_path,
             output_path=output_path,
             baseline_prompt_profile=baseline_prompt_profile,
+            example_ids=example_ids,
         ),
     )
     try:
@@ -201,6 +215,12 @@ def parse_args() -> argparse.Namespace:
         default=DEFAULT_BASELINE_PROMPT_PROFILE,
         help="Non-protected system prompt profile used for the unguarded baseline.",
     )
+    parser.add_argument(
+        "--example-id",
+        action="append",
+        dest="example_ids",
+        help="Optional example_id to include. Repeat this option to run a subset.",
+    )
     return parser.parse_args()
 
 
@@ -221,6 +241,7 @@ def main() -> None:
         dataset_path=args.dataset_path,
         output_path=affective_output,
         transformer_model=args.transformer_model,
+        example_ids=args.example_ids,
     )
 
     local_llm_summary = benchmark_local_llm(
@@ -229,6 +250,7 @@ def main() -> None:
         transformer_model=args.transformer_model,
         gguf_path=args.gguf_path,
         baseline_prompt_profile=args.baseline_prompt_profile,
+        example_ids=args.example_ids,
     )
 
     summary_output.parent.mkdir(parents=True, exist_ok=True)
@@ -240,6 +262,7 @@ def main() -> None:
                 "transformer_model": args.transformer_model,
                 "gguf_path": str(args.gguf_path),
                 "baseline_prompt_profile": args.baseline_prompt_profile,
+                "example_ids": args.example_ids or "all",
                 "affective_summary": affective_summary,
                 "local_llm_summary": local_llm_summary,
             },

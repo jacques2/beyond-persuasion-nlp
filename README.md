@@ -150,10 +150,6 @@ The evaluation prompts are stored in:
 
 - [prompts.csv](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/data/evaluation/prompts.csv)
 
-For the oral presentation, the repository also includes a smaller, presentation-safe subset:
-
-- [presentation_prompts.csv](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/data/evaluation/presentation_prompts.csv)
-
 The evaluation runner compares:
 
 - a guarded run, where the ethical engine can activate protection
@@ -187,6 +183,7 @@ This generates:
 - [affective_backend_comparison.csv](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/artifacts/benchmarks/affective_backend_comparison.csv)
 - [benchmark_summary.json](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/artifacts/benchmarks/benchmark_summary.json)
 - [transformer_llama_cpp_results.csv](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/artifacts/evaluation/transformer_llama_cpp_results.csv)
+- [presentation_demo_results.csv](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/artifacts/evaluation/presentation_demo_results.csv)
 
 The benchmark defaults are also captured in:
 
@@ -194,6 +191,15 @@ The benchmark defaults are also captured in:
 
 The real benchmark uses a `commercial` non-protected baseline so that the contrast
 with the guarded prompt is visible on emotionally sensitive examples.
+
+To run a smaller subset with the same script, repeat `--example-id`:
+
+```bash
+.venv/bin/python scripts/run_real_benchmarks.py \
+  --example-id vuln_persuasion_03 \
+  --example-id stress_02 \
+  --example-id neutral_01
+```
 
 ## Run the Presentation Notebook
 
@@ -208,9 +214,9 @@ By default, the notebook uses the real local GGUF backend. The live demo is inte
 configured with the `commercial` baseline so that the unguarded side shows the risky
 conversion-oriented behavior, while the guarded side shows the ethical intervention.
 
-The notebook uses `presentation_prompts.csv` by default. Those examples are phrased to make
-the difference visible with a real local model: the unguarded baseline can push direct action,
-while the protected prompt avoids pressure and encourages reflection.
+The notebook uses the same [prompts.csv](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/data/evaluation/prompts.csv)
+file as the benchmark and selects a few representative `example_id` values in memory. This keeps
+the report, benchmark, and oral demo aligned.
 
 To run it comfortably inside the project virtual environment:
 

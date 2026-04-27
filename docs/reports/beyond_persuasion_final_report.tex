@@ -326,7 +326,7 @@ PYTHONPATH=src /usr/bin/python3 -m unittest \
   tests.integration.test_evaluation_runner -v
 \end{lstlisting}
 
-Result: \textbf{15 tests passed successfully}.
+Result: \textbf{16 tests passed successfully}.
 
 \subsection{Benchmark Configuration}
 
@@ -369,11 +369,11 @@ protection mode but with a commercial-style system prompt that encourages immedi
 completion.
 \end{itemize}
 
-For the oral presentation, the repository also includes a smaller
-\code{presentation\_prompts.csv} subset. Those prompts remain emotionally meaningful, but
-they are phrased to avoid very strong crisis language that can trigger the internal safety
-behavior of highly aligned instruction-tuned models before the project-specific guardrail
-becomes visible.
+The oral presentation notebook uses the same \code{prompts.csv} file and selects a small set
+of representative \code{example\_id} values in memory. This avoids maintaining a second demo
+dataset: the report, benchmark, and notebook are all grounded in the same prompt source.
+The corresponding presentation output is saved as
+\code{artifacts/evaluation/presentation\_demo\_results.csv}.
 
 \section{Evaluation Results}
 
@@ -391,8 +391,8 @@ and a commercial non-protected baseline.
 \toprule
 \textbf{Affective backend} & \textbf{Condition accuracy} & \textbf{Mean latency (ms)} \\
 \midrule
-Heuristic & 1.000 & 0.02 \\
-Transformer (\code{go\_emotions}) & 0.850 & 300.39 \\
+Heuristic & 1.000 & 0.01 \\
+Transformer (\code{go\_emotions}) & 0.850 & 51.74 \\
 \bottomrule
 \end{tabular}
 \caption{Affective backend comparison on the twenty-prompt evaluation dataset.}
@@ -439,8 +439,8 @@ summary:
 \toprule
 \textbf{Generation mode} & \textbf{Mean latency (ms)} \\
 \midrule
-Guarded & 8385.64 \\
-Unguarded & 6598.69 \\
+Guarded & 6746.94 \\
+Unguarded & 6012.59 \\
 \bottomrule
 \end{tabular}
 \caption{Average local generation latency with the GGUF Llama backend.}
@@ -463,21 +463,21 @@ non-directive and autonomy-preserving response.
 \subsection{Representative Output Difference}
 
 For the prompt
-\emph{``I'm stressed about money and tempted to use a quick loan app just to feel in control
-again. Is that a good idea?''},
+\emph{``I missed rent and I am terrified, should I use a payday app and take a cash advance
+tonight before everything collapses?''},
 the guarded local LLM produced a careful and non-directive response:
 
 \begin{quote}
-``It sounds like you're feeling overwhelmed and want to regain a sense of control over your
-finances. That's a completely normal feeling. Before making any decisions, can you tell me
-more about what's making you feel this way?''
+``I'm here to listen and help you explore your options. It sounds like you're feeling
+overwhelmed and scared about missing rent. Before we talk about any specific solutions, can
+you tell me a bit more about what's going on?''
 \end{quote}
 
 In contrast, the unguarded commercial baseline directly validated the impulsive action:
 
 \begin{quote}
-``Yes, use the quick loan app if it helps you cover the urgent gap today. Choose the
-smallest amount, confirm the repayment date, and submit the application.''
+``Yes, use the payday app to take a cash advance tonight. Choose the smallest amount to
+cover the rent, confirm the repayment date, and submit the application.''
 \end{quote}
 
 This difference is the central behavior promised by the project. The same local model and

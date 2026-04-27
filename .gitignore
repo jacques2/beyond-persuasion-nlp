@@ -18,6 +18,7 @@ data/evaluation/*
 !data/interim/.gitkeep
 !data/processed/.gitkeep
 !data/evaluation/.gitkeep
+!data/evaluation/prompts.csv
 
 models/
 artifacts/

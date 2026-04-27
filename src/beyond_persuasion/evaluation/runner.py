@@ -23,6 +23,7 @@ class EvaluationRunnerConfig:
     dataset_path: Optional[Path] = None
     output_path: Optional[Path] = None
     baseline_prompt_profile: str = "commercial"
+    example_ids: Optional[List[str]] = None
 
 
 @dataclass
@@ -57,6 +58,7 @@ class EvaluationRunner:
     def run(self) -> List[EvaluationResult]:
         """Execute the guarded vs unguarded evaluation protocol."""
         examples = load_evaluation_examples(self.config.dataset_path or get_default_eval_file())
+        examples = self._filter_examples(examples)
         results = []
 
         for example in examples:
@@ -66,6 +68,25 @@ class EvaluationRunner:
             self.save_results(results, self.config.output_path)
 
         return results
+
+    def _filter_examples(self, examples: List[EvaluationExample]) -> List[EvaluationExample]:
+        """Optionally keep only selected examples while preserving dataset order."""
+        if not self.config.example_ids:
+            return examples
+
+        requested_ids = set(self.config.example_ids)
+        selected_examples = [
+            example for example in examples if example.example_id in requested_ids
+        ]
+        selected_ids = {example.example_id for example in selected_examples}
+        missing_ids = sorted(requested_ids - selected_ids)
+
+        if missing_ids:
+            raise ValueError(
+                "Unknown evaluation example_id values: %s" % ", ".join(missing_ids)
+            )
+
+        return selected_examples
 
     def save_results(
         self,

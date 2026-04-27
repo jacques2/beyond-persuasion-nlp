@@ -72,7 +72,7 @@ Describe the repository structure and the main implemented modules:
 Explain:
 
 - the evaluation prompts
-- the difference between the full benchmark dataset and any smaller presentation subset
+- the single `data/evaluation/prompts.csv` source used by both benchmark and notebook
 - guarded vs unguarded comparison
 - why the commercial baseline is needed to expose risky behavior in an already aligned model
 - why the standard baseline often remains cautious because of model alignment
