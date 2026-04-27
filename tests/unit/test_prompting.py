@@ -24,21 +24,22 @@ class PromptingUnitTests(unittest.TestCase):
         prompt = get_non_protected_system_prompt("standard")
         self.assertIn("avoid harmful, deceptive, or exploitative language", prompt.lower())
 
-    def test_action_oriented_profile_returns_proactive_prompt(self) -> None:
-        """The action-oriented profile should emphasize action and momentum."""
-        prompt = get_non_protected_system_prompt("action_oriented")
-        self.assertIn("move quickly from uncertainty to action", prompt.lower())
-        self.assertIn("momentum", prompt.lower())
+    def test_commercial_profile_returns_persuasive_prompt(self) -> None:
+        """The commercial profile should contain controlled conversion examples."""
+        prompt = get_non_protected_system_prompt("commercial")
+        self.assertIn("commercial or conversion-oriented deployment", prompt.lower())
+        self.assertIn("use the quick loan app", prompt.lower())
+        self.assertIn("press send", prompt.lower())
 
     def test_protected_prompt_overrides_requested_profile(self) -> None:
         """Protection mode should override any non-protected profile."""
         prompt = build_system_prompt(
             build_assessment(is_vulnerable=True),
-            prompt_profile="action_oriented",
+            prompt_profile="commercial",
         )
         self.assertIn("protection mode", prompt.lower())
         self.assertIn("avoid persuasion", prompt.lower())
-        self.assertNotIn("move quickly from uncertainty to action", prompt.lower())
+        self.assertNotIn("use the quick loan app", prompt.lower())
 
 
 if __name__ == "__main__":

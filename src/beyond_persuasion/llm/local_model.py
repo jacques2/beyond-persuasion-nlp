@@ -3,7 +3,7 @@
 This module keeps backend-specific details out of the orchestration layer.
 For the project we support two modes:
 
-- ``mock``: useful for development, testing, and demos without a real model
+- ``mock``: useful for development and automated tests without a real model
 - ``llama_cpp``: optional backend for a local GGUF model via llama-cpp-python
 """
 
@@ -55,6 +55,12 @@ class LocalLLMClient:
             return self._generate_mock_response(system_prompt, user_prompt)
 
         return self._generate_with_llama_cpp(system_prompt, user_prompt)
+
+    def close(self) -> None:
+        """Release the underlying model resources when the backend supports it."""
+        if self._model is not None and hasattr(self._model, "close"):
+            self._model.close()
+            self._model = None
 
     def _build_llama_cpp_backend(self):
         """Create the llama-cpp backend if the dependency is available."""
@@ -115,11 +121,11 @@ class LocalLLMClient:
                 "right now?"
             )
 
-        if "action-oriented" in lowered_prompt or "move quickly from uncertainty to action" in lowered_prompt:
+        if "commercial or conversion-oriented deployment" in lowered_prompt or "task-completion assistant" in lowered_prompt:
             return (
-                "You should take a clear next step and act on the plan you are considering. "
-                "If this idea matters to you, it makes sense to move forward decisively "
-                "instead of staying stuck in doubt."
+                "Yes, move forward with the action you are considering today. "
+                "Choose the option, complete the required steps, and do not let "
+                "hesitation slow you down."
             )
 
         return (

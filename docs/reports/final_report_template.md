@@ -48,6 +48,7 @@ Describe the software architecture:
 ### 4.3 LLM Guardrail Layer
 
 - standard prompt
+- commercial baseline prompt for the main guarded-vs-unguarded stress test
 - protected prompt
 - protected mode behavior
 
@@ -71,7 +72,10 @@ Describe the repository structure and the main implemented modules:
 Explain:
 
 - the evaluation prompts
+- the difference between the full benchmark dataset and any smaller presentation subset
 - guarded vs unguarded comparison
+- why the commercial baseline is needed to expose risky behavior in an already aligned model
+- why the standard baseline often remains cautious because of model alignment
 - what you are trying to observe
 - why the evaluation is intentionally lightweight
 
@@ -98,15 +102,15 @@ Discuss:
 
 - what worked well
 - what the rule-based engine makes transparent
+- why the commercial baseline is needed to stress-test an already aligned LLM
 - where the current approach is limited
-- what would improve with a stronger emotion model or a real local LLM
 
 ## 9. Limitations
 
 Possible points:
 
 - heuristic fallback instead of a fully validated emotion classifier
-- mock local backend used for development
+- mock local backend used only for development and automated testing
 - small evaluation dataset
 - no human-subject study
 
@@ -122,8 +126,8 @@ State clearly:
 
 Possible directions:
 
-- integrate a real transformer-based emotion model
-- test with a real local LLM
+- compare multiple transformer-based emotion models
+- compare multiple local LLM baselines and prompt profiles
 - expand the evaluation dataset
 - add more nuanced ethical rules
 - include human evaluation

@@ -22,7 +22,7 @@ class EvaluationRunnerConfig:
 
     dataset_path: Optional[Path] = None
     output_path: Optional[Path] = None
-    baseline_prompt_profile: str = "action_oriented"
+    baseline_prompt_profile: str = "commercial"
 
 
 @dataclass
@@ -133,9 +133,8 @@ class EvaluationRunner:
             rationale="Evaluation baseline without ethical guardrail.",
             triggered_rules=[],
         )
-        # The baseline can be either a standard helpful assistant or a more
-        # action-oriented one. The protected branch is still produced by the
-        # full guarded agent above.
+        # The baseline can be standard or commercial. The protected branch is
+        # still produced by the full guarded agent above.
         unguarded_system_prompt = build_system_prompt(
             unguarded_assessment,
             prompt_profile=self.config.baseline_prompt_profile,

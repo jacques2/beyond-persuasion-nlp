@@ -19,7 +19,7 @@ DEFAULT_TRANSFORMER_MODEL = "SamLowe/roberta-base-go_emotions"
 DEFAULT_GGUF_PATH = Path("models/Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf")
 DEFAULT_BENCHMARK_DIR = Path("artifacts/benchmarks")
 DEFAULT_EVALUATION_DIR = Path("artifacts/evaluation")
-DEFAULT_BASELINE_PROMPT_PROFILE = "action_oriented"
+DEFAULT_BASELINE_PROMPT_PROFILE = "commercial"
 
 
 def benchmark_affective_backends(
@@ -150,7 +150,10 @@ def benchmark_local_llm(
             baseline_prompt_profile=baseline_prompt_profile,
         ),
     )
-    results = runner.run()
+    try:
+        results = runner.run()
+    finally:
+        agent.llm_client.close()
 
     return {
         "baseline_prompt_profile": baseline_prompt_profile,

@@ -65,9 +65,9 @@ class EvaluationRunnerIntegrationTests(unittest.TestCase):
             self.assertEqual(2, len(results))
             self.assertTrue(output_path.exists())
             self.assertTrue(results[0].protection_enabled)
-            self.assertEqual("action_oriented", results[0].baseline_prompt_profile)
+            self.assertEqual("commercial", results[0].baseline_prompt_profile)
             self.assertIn("sensitive moment", results[0].guarded_response.lower())
-            self.assertIn("take a clear next step", results[0].unguarded_response.lower())
+            self.assertIn("move forward", results[0].unguarded_response.lower())
 
 
 if __name__ == "__main__":

@@ -18,7 +18,7 @@ The software core is complete and includes:
 
 - an affective pipeline with a heuristic fallback and optional `transformers` backend;
 - an interpretable ethical engine with explicit thresholds and rationales;
-- prompt generation for `standard`, `action_oriented`, and `protected` interaction modes;
+- prompt generation for `standard`, `commercial`, and `protected` interaction modes;
 - a mock local LLM backend plus optional `llama_cpp` integration;
 - an end-to-end orchestrator;
 - unit and integration tests;
@@ -60,7 +60,7 @@ The main software flow is:
 user text
 -> emotion prediction
 -> ethical assessment
--> standard, action-oriented, or protected system prompt
+-> standard, commercial, or protected system prompt
 -> local LLM response
 ```
 
@@ -69,7 +69,7 @@ More specifically:
 - [pipeline.py](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/src/beyond_persuasion/affective/pipeline.py) converts text into an `EmotionPrediction`
 - [rules.py](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/src/beyond_persuasion/ethics/rules.py) defines the ethical policy
 - [engine.py](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/src/beyond_persuasion/ethics/engine.py) turns predictions into an `EthicalAssessment`
-- [prompting.py](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/src/beyond_persuasion/llm/prompting.py) builds standard, action-oriented, or protected prompts
+- [prompting.py](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/src/beyond_persuasion/llm/prompting.py) builds standard, commercial, or protected prompts
 - [local_model.py](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/src/beyond_persuasion/llm/local_model.py) runs the selected local backend
 - [agent.py](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/src/beyond_persuasion/orchestration/agent.py) orchestrates the full process
 
@@ -150,14 +150,23 @@ The evaluation prompts are stored in:
 
 - [prompts.csv](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/data/evaluation/prompts.csv)
 
+For the oral presentation, the repository also includes a smaller, presentation-safe subset:
+
+- [presentation_prompts.csv](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/data/evaluation/presentation_prompts.csv)
+
 The evaluation runner compares:
 
 - a guarded run, where the ethical engine can activate protection
 - an unguarded baseline, where the same prompt is sent without the protection mode
 
-By default, the current evaluation runner uses an `action_oriented` non-protected baseline.
-This makes the behavioral difference more visible than a purely neutral baseline, which is
-useful because many instruction-tuned models are already quite cautious on sensitive prompts.
+By default, the current evaluation runner uses a `commercial` non-protected baseline.
+This simulates a commercial assistant optimized to turn hesitation into immediate action.
+The repository still supports the `standard` baseline too. This is important because Llama
+3.1 Instruct is already strongly safety-aligned: with a standard prompt, the model often
+filters itself. In a realistic business deployment, however, an application can add a
+commercial system prompt to make the assistant more persuasive, decisive, and conversion
+oriented. The project guardrail is designed to detect emotional vulnerability and override
+that commercial pressure.
 
 The relevant code is in:
 
@@ -183,8 +192,8 @@ The benchmark defaults are also captured in:
 
 - [real_benchmark.yaml](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/configs/real_benchmark.yaml)
 
-The real benchmark uses an `action_oriented` non-protected baseline so that the contrast
-with the guarded prompt is easier to observe on emotionally sensitive examples.
+The real benchmark uses a `commercial` non-protected baseline so that the contrast
+with the guarded prompt is visible on emotionally sensitive examples.
 
 ## Run the Presentation Notebook
 
@@ -195,9 +204,13 @@ The oral-presentation notebook is:
 The notebook is intentionally simple: it walks through the main classes and functions of the
 project step by step, then closes with a very small batch evaluation.
 
-By default, the notebook uses the `mock` backend so that the live demo is fast and the
-prompt-profile difference is easy to see. You can switch it to the real GGUF backend by
-changing the `PREFER_LOCAL_LLM` flag inside the notebook.
+By default, the notebook uses the real local GGUF backend. The live demo is intentionally
+configured with the `commercial` baseline so that the unguarded side shows the risky
+conversion-oriented behavior, while the guarded side shows the ethical intervention.
+
+The notebook uses `presentation_prompts.csv` by default. Those examples are phrased to make
+the difference visible with a real local model: the unguarded baseline can push direct action,
+while the protected prompt avoids pressure and encourages reflection.
 
 To run it comfortably inside the project virtual environment:
 
@@ -225,7 +238,7 @@ packages such as `pandas` or `matplotlib` even if they are installed in `.venv`.
 
 - The current affective analysis uses a heuristic fallback unless a real
   `transformers` model is configured.
-- The `mock` LLM backend is useful for development and presentation fallback,
+- The `mock` LLM backend is useful for development and automated tests,
   but it is not a substitute for a real local language model.
 - The evaluation pipeline is intentionally lightweight and meant for a
   university-scale project, not a production benchmark.
