@@ -20,9 +20,9 @@ The affective layer transforms user text into an `EmotionPrediction`.
 
 Current implementation:
 
-- English-only emotion detection
-- heuristic fallback classifier
-- optional `transformers` backend when configured
+- English-only transformer-based emotion detection
+- reduced project-level emotion taxonomy focused on ethical risk
+- heuristic fallback only when the transformer model or dependencies are unavailable
 
 Main file:
 
@@ -53,8 +53,8 @@ Current implementation:
 - standard system prompt
 - commercial baseline prompt for the main guarded-vs-unguarded benchmark
 - protected system prompt
-- optional local GGUF backend through `llama_cpp`
-- deterministic `mock` backend for development and testing
+- local GGUF backend through `llama_cpp`
+- deterministic `mock` backend only when the local GGUF model is unavailable
 
 Main files:
 
@@ -96,24 +96,12 @@ ConversationTurn
 -> response
 ```
 
-## Testing Status
-
-The repository currently contains:
-
-- unit tests for the ethical engine
-- integration tests for the guarded agent
-- integration tests for the evaluation runner
-
-This gives coverage over the most important project logic, especially the
-decision-making behavior of the rule-based ethical layer and the selection of
-the prompt profile used by the LLM layer.
-
 ## Presentation Support
 
 For the oral presentation, the repository also includes:
 
 - a curated evaluation dataset with vulnerable, impulsive, mixed, and neutral examples
-- a lightweight notebook walkthrough in
+- a focused notebook walkthrough in
   [presentation_demo.ipynb](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/docs/presentation_demo.ipynb)
 
 The notebook focuses on the actual repository classes and functions rather than
@@ -128,9 +116,9 @@ already contain internal safety behavior.
 
 ## Current Limitations
 
-- The affective module currently relies on a heuristic fallback unless a real
-  transformer model is configured.
-- The mock local backend is useful for validating software behavior in tests,
-  but the final presentation should use the real local LLM backend.
+- The main configuration requires both the transformer affective dependencies
+  and a local GGUF model, so it is heavier than the emergency fallback path.
+- The project uses one selected transformer affective model and one selected
+  local LLM, rather than comparing many possible model families.
 - The evaluation is intentionally lightweight and suitable for a university
   project rather than a large empirical benchmark.

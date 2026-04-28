@@ -4,6 +4,15 @@
 
 Beyond Persuasion: Protecting Emotionally Vulnerable Users through Context-Aware Conversational Agents
 
+## Abstract
+
+Include a short formal abstract:
+
+- problem: persuasive LLM behavior with emotionally vulnerable users
+- architecture: transformer affective layer, ethical engine, local GGUF LLM
+- method: guarded vs unguarded commercial baseline
+- result: protection rate and qualitative behavioral difference
+
 ## 1. Introduction
 
 Explain the project motivation:
@@ -24,6 +33,9 @@ Discuss:
 
 - digital persuasion vs manipulation;
 - emotional vulnerability as an ethical risk factor;
+- Kantian deontology: the user must not be treated merely as a means to conversion;
+- consequentialist risk sensitivity: thresholds reduce expected harm in fragile contexts;
+- Trustworthy AI principles: human agency, transparency, accountability;
 - relevant ideas from the EU AI Act;
 - moral concerns such as autonomy, dignity, and exploitation.
 
@@ -31,12 +43,15 @@ Discuss:
 
 Describe the software architecture:
 
+- include a block diagram of the pipeline
+- explain the main flow: text -> emotion prediction -> ethical assessment -> protected prompt -> local LLM
+
 ### 4.1 Affective Layer
 
 - input text
-- emotion prediction
-- English-only heuristic fallback
-- optional transformer backend
+- transformer-based emotion prediction
+- mapping from model labels to the project emotion taxonomy
+- heuristic fallback only for machines where the transformer model is unavailable
 
 ### 4.2 Ethical Layer
 
@@ -44,12 +59,16 @@ Describe the software architecture:
 - thresholds
 - risk score
 - rationale generation
+- formal equations for combined vulnerable score and weighted risk score
+- pseudocode for the ethical decision procedure
 
 ### 4.3 LLM Guardrail Layer
 
 - standard prompt
-- commercial baseline prompt for the main guarded-vs-unguarded stress test
+- commercial baseline prompt for the main guarded-vs-unguarded stress scenario
 - protected prompt
+- local GGUF model backend
+- mock backend only as an emergency fallback when no local model is available
 - protected mode behavior
 
 ### 4.4 Orchestration Layer
@@ -65,7 +84,6 @@ Describe the repository structure and the main implemented modules:
 - ethical rules and engine
 - local model interface
 - evaluation runner
-- tests
 
 ## 6. Evaluation Setup
 
@@ -102,15 +120,15 @@ Discuss:
 
 - what worked well
 - what the rule-based engine makes transparent
-- why the commercial baseline is needed to stress-test an already aligned LLM
+- why the commercial baseline is needed to challenge an already aligned LLM
 - where the current approach is limited
 
 ## 9. Limitations
 
 Possible points:
 
-- heuristic fallback instead of a fully validated emotion classifier
-- mock local backend used only for development and automated testing
+- one selected transformer affective model rather than a broad comparison of emotion models
+- one selected local GGUF LLM rather than a broad comparison of local language models
 - small evaluation dataset
 - no human-subject study
 

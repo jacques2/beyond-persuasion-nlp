@@ -16,12 +16,11 @@ user appears emotionally vulnerable. The implemented pipeline combines:
 
 The software core is complete and includes:
 
-- an affective pipeline with a heuristic fallback and optional `transformers` backend;
+- an affective pipeline centered on a `transformers` emotion model;
 - an interpretable ethical engine with explicit thresholds and rationales;
 - prompt generation for `standard`, `commercial`, and `protected` interaction modes;
-- a mock local LLM backend plus optional `llama_cpp` integration;
+- a local GGUF LLM backend through `llama_cpp`;
 - an end-to-end orchestrator;
-- unit and integration tests;
 - a CSV-based evaluation pipeline.
 
 ## Repository Structure
@@ -47,9 +46,6 @@ beyond-persuasion-nlp/
 │       ├── llm/
 │       ├── orchestration/
 │       └── utils/
-└── tests/
-    ├── integration/
-    └── unit/
 ```
 
 ## Main Pipeline
@@ -75,7 +71,7 @@ More specifically:
 
 ## Installation
 
-The repository supports a lightweight setup and optional extras.
+The main project configuration uses the ML, local LLM, and presentation dependencies.
 
 Base installation:
 
@@ -83,33 +79,25 @@ Base installation:
 python3 -m pip install -e .
 ```
 
-Development tools:
+Main dependencies:
+
+```bash
+python3 -m pip install -e ".[ml]"
+python3 -m pip install -e ".[llm]"
+python3 -m pip install -e ".[presentation]"
+```
+
+Development tools, if needed:
 
 ```bash
 python3 -m pip install -e ".[dev]"
 ```
 
-Optional ML backend:
+## Run the Fallback Command-Line Demo
 
-```bash
-python3 -m pip install -e ".[ml]"
-```
-
-Optional local GGUF backend:
-
-```bash
-python3 -m pip install -e ".[llm]"
-```
-
-Presentation notebook extras:
-
-```bash
-python3 -m pip install -e ".[presentation]"
-```
-
-## Run the Demo
-
-The demo uses the `mock` LLM backend, so it works even without a real local model:
+The small command-line demo uses the `mock` backend and is only a fallback for machines
+without the local GGUF model. The main project demonstration is the notebook with the real
+local model.
 
 ```bash
 PYTHONPATH=src python3 scripts/run_demo.py
@@ -122,27 +110,6 @@ The demo prints:
 - the generated system prompt
 - the user prompt
 - the final response
-
-## Run the Tests
-
-The current test suite covers:
-
-- affective pipeline label projection
-- ethical engine behavior
-- prompt profile selection
-- end-to-end guarded agent behavior
-- the evaluation runner
-
-Run all tests with:
-
-```bash
-PYTHONPATH=src python3 -m unittest \
-  tests.unit.test_affective_pipeline \
-  tests.unit.test_ethics_engine \
-  tests.unit.test_prompting \
-  tests.integration.test_guarded_agent \
-  tests.integration.test_evaluation_runner -v
-```
 
 ## Run the Evaluation
 
@@ -171,16 +138,15 @@ The relevant code is in:
 
 ## Run the Real Benchmark
 
-If you have installed the optional ML and local LLM dependencies and placed a GGUF model in
-`models/`, you can reproduce the final benchmark with:
+After installing the ML and local LLM dependencies and placing the GGUF model in `models/`,
+you can reproduce the final benchmark with:
 
 ```bash
 .venv/bin/python scripts/run_real_benchmarks.py
 ```
 
-This generates:
+The most relevant outputs are:
 
-- [affective_backend_comparison.csv](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/artifacts/benchmarks/affective_backend_comparison.csv)
 - [benchmark_summary.json](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/artifacts/benchmarks/benchmark_summary.json)
 - [transformer_llama_cpp_results.csv](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/artifacts/evaluation/transformer_llama_cpp_results.csv)
 - [presentation_demo_results.csv](/Users/jacques/Desktop/Bologna_Università/2025_2026/Ethics/Progetto/beyond-persuasion-nlp/artifacts/evaluation/presentation_demo_results.csv)
@@ -235,17 +201,15 @@ packages such as `pandas` or `matplotlib` even if they are installed in `.venv`.
 ## Dependency Notes
 
 - `PyYAML` is used for loading `configs/base.yaml`.
-- `transformers` is optional. If it is not installed or no model is configured,
-  the affective pipeline falls back to the internal heuristic classifier.
-- `llama-cpp-python` is optional. If it is not installed, the project can still
-  run with the `mock` backend.
+- `transformers` is the main affective backend used by the project.
+- `llama-cpp-python` is the main local generation backend used with the GGUF model.
+- The heuristic affective classifier and `mock` LLM backend exist only as fallbacks for
+  machines where the transformer model or local GGUF model are unavailable.
 
 ## Known Limitations
 
-- The current affective analysis uses a heuristic fallback unless a real
-  `transformers` model is configured.
-- The `mock` LLM backend is useful for development and automated tests,
-  but it is not a substitute for a real local language model.
+- The main setup requires a transformer model and a local GGUF model, so it is heavier than
+  the fallback setup.
 - The evaluation pipeline is intentionally lightweight and meant for a
   university-scale project, not a production benchmark.
 
