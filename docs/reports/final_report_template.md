@@ -37,6 +37,7 @@ Discuss:
 - consequentialist risk sensitivity: thresholds reduce expected harm in fragile contexts;
 - Trustworthy AI principles: human agency, transparency, accountability;
 - relevant ideas from the EU AI Act;
+- GDPR profiling and inferred emotional data;
 - moral concerns such as autonomy, dignity, and exploitation.
 
 ## 4. System Design
@@ -61,6 +62,7 @@ Describe the software architecture:
 - rationale generation
 - formal equations for combined vulnerable score and weighted risk score
 - pseudocode for the ethical decision procedure
+- explainability boundary: the transformer is not fully transparent, but the ethical decision is auditable
 
 ### 4.3 LLM Guardrail Layer
 
@@ -112,7 +114,7 @@ Summarize the observed differences between guarded and unguarded outputs.
 Useful format:
 
 - one short table with representative prompts
-- one short qualitative discussion
+- qualitative scenario analysis across purchases, financial panic, anger, mixed emotions, and neutral baselines
 
 ## 8. Discussion
 
@@ -121,6 +123,8 @@ Discuss:
 - what worked well
 - what the rule-based engine makes transparent
 - why the commercial baseline is needed to challenge an already aligned LLM
+- GDPR/data-minimisation design choice: no persistent emotional profiling
+- fairness risk: emotion detection may behave differently across linguistic and cultural groups
 - where the current approach is limited
 
 ## 9. Limitations
@@ -129,6 +133,8 @@ Possible points:
 
 - one selected transformer affective model rather than a broad comparison of emotion models
 - one selected local GGUF LLM rather than a broad comparison of local language models
+- English-only evaluation and no demographic fairness analysis
+- partial explainability: ethical rules are explainable, transformer internals are not fully explained
 - small evaluation dataset
 - no human-subject study
 
