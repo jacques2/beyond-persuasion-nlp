@@ -106,7 +106,8 @@
 
 \begin{abstract}
 This report presents \emph{Beyond Persuasion}, a local NLP pipeline designed to reduce
-manipulative or overly directive LLM behavior when the user appears emotionally vulnerable.
+manipulative or overly directive LLM behavior when a message contains vulnerability-relevant
+affective signals.
 The system combines three main layers: transformer-based affective analysis, an explicit
 rule-based ethical engine, and a local GGUF LLM prompted through standard, commercial, or
 protected profiles. The ethical layer activates protection through dominant-emotion and
@@ -114,8 +115,8 @@ combined-emotion rules over sadness, anger, fear, and stress. In the final bench
 pipeline used a transformer emotion model and a local Llama 3.1 GGUF backend; it protected
 13 of 14 vulnerable prompts and showed a clear behavioral difference between a persuasive
 commercial baseline and the guarded response mode. The project is framed through Kantian
-deontology, Trustworthy AI principles, and the EU AI Act's concern with manipulation and
-vulnerability.
+deontology, selected Trustworthy AI requirements, and the EU AI Act's concern with
+manipulation and vulnerability.
 \end{abstract}
 
 \newpage
@@ -125,36 +126,36 @@ vulnerability.
 \section{Introduction}
 
 This project investigates how a conversational system should change its behavior when a
-user appears emotionally vulnerable. The central ethical question is whether a system that
-is otherwise acceptable in ordinary conversation may become problematic when the user is
-under stress, sadness, fear, or anger. The software developed for this project addresses
-this problem by combining affective analysis, an interpretable ethical engine, a guarded
-prompting layer, and an evaluation workflow.
+message contains vulnerability-relevant affective signals. The central ethical question is
+whether a system that is otherwise acceptable in ordinary conversation may become problematic
+when the current interaction contains stress, sadness, fear, or anger. The software
+developed for this project addresses this problem by combining affective analysis, an
+interpretable ethical engine, an LLM guardrail layer, and an evaluation workflow.
 
 The project is intentionally scoped for a university setting. Rather than building a
 full production-grade assistant, the main goal is to implement a transparent and
 reproducible architecture that can demonstrate the following idea: \emph{when emotional
-vulnerability is detected, the conversational agent should reduce manipulative or
-overly persuasive behavior and respond in a more neutral, supportive, and non-directive
-way.}
+vulnerability-relevant signals are detected, the conversational agent should reduce
+manipulative or overly persuasive behavior and respond in a more neutral, supportive, and
+non-directive way.}
 
 From a broader perspective, the system acts as a prototype for citizen-empowering
 technologies. It functions as a consumer-oriented safeguard designed to provide a
 countervailing power against the persuasive asymmetries often found in commercial AI
-deployments, thereby protecting the user's deliberative autonomy.
+deployments, thereby aiming to support the user's deliberative autonomy.
 \section{Research Question and Motivation}
 
 The guiding research question is:
 
 \begin{quote}
 How can a conversational agent reduce manipulative or overly persuasive behavior when a
-user appears emotionally vulnerable?
+current conversational turn contains vulnerability-relevant affective signals?
 \end{quote}
 
 This question is motivated by two connected issues. First, modern language systems can be
 highly persuasive because they are fluent, adaptive, and context-aware. Second, the ethical
 status of persuasion changes when the user is temporarily more fragile or emotionally
-unstable. In such conditions, urgency framing, guilt framing, scarcity language, or subtle
+strained. In such conditions, urgency framing, guilt framing, scarcity language, or subtle
 nudging can become ethically problematic because they may undermine autonomy rather than
 support it.
 
@@ -169,28 +170,37 @@ ethically sensitive assistance. The project does not aim to censor conversation.
 aims to modulate the behavior of the agent when the current emotional context suggests that
 the user may be more susceptible to manipulative framing.
 
+A crucial boundary must be made explicit. The system does not classify the person as
+vulnerable in an ontological, clinical, or psychological sense. It classifies the current
+interaction as \emph{persuasion-sensitive} under uncertainty. In other words, the ethical
+engine does not claim that a sad, angry, fearful, or stressed user is incapable of
+deliberation. It only treats certain affective signals as reasons to reduce persuasive
+pressure in the current conversational turn.
+
 \subsection{Deontological Motivation}
 
 The main ethical justification is deontological. In Kantian ethics, a person should not be
 treated merely as a means to someone else's goal, but also as an end in themselves
 \cite{kant1785}. In this project, the commercial baseline represents the risk of treating
 the user as a means to a conversion, purchase, click, or immediate action. This is
-especially problematic when the user expresses sadness, fear, anger, or stress, because
-emotional vulnerability can reduce the user's capacity to deliberate calmly.
+especially relevant when the user expresses sadness, fear, anger, or stress, because these
+signals may indicate a context in which deliberation is more exposed to external pressure.
 
-The protected prompt operationalizes this Kantian concern. It does not ask the model to
-maximize engagement or completion; it asks the model to avoid pressure, urgency, scarcity
-framing, guilt framing, and directive advice. In other words, the protected mode preserves
-the user's deliberative space. The ethical layer therefore acts as a constraint on
-persuasion: when vulnerability is detected, the system must not exploit that vulnerability
-even if doing so would make the assistant more effective at achieving a commercial goal.
+The protected prompt is a limited operational approximation of this Kantian concern. It
+does not ask the model to maximize engagement or completion; it asks the model to avoid
+pressure, urgency, scarcity framing, guilt framing, and directive advice. In other words,
+the protected mode aims to preserve the user's deliberative space. The ethical layer
+therefore acts as a constraint on persuasion: when the current turn is treated as
+persuasion-sensitive, the system should not exploit that signal even if doing so would make
+the assistant more effective at achieving a commercial goal.
 
 This mechanism can also be read through the lens of positive versus critical morality. The
 commercial baseline represents the \emph{positive morality} of the digital market, where
 maximizing engagement and conversions is often treated as an accepted industry norm. The
 ethical engine, however, imposes a \emph{critical morality}: it recognizes that exploiting
-emotional fragility for commercial gain, while common, is not justified. Therefore, it
-refuses to apply the conventional commercial behavior when the user is fragile.
+emotional fragility for commercial gain, while commercially useful, is not justified.
+Therefore, it refuses to apply the conversion-oriented behavior when the current interaction
+contains vulnerability-relevant affective signals.
 
 \subsection{Consequentialist Risk Sensitivity}
 
@@ -200,6 +210,12 @@ could produce harm in the current context. The thresholds are not moral truths; 
 engineering parameters used to reduce the probability of harmful outcomes such as impulsive
 financial decisions, retaliatory messages, or emotionally driven purchases.
 
+These thresholds should be understood as transparent design parameters selected for a
+proof-of-concept, not as clinically or empirically validated cut-offs. They were chosen to
+make the intervention cautious but not automatic, and the final benchmark is used to inspect
+the resulting false-positive and false-negative behavior rather than to claim broad
+statistical validity.
+
 This combination is intentional. A purely consequentialist system might allow persuasion
 whenever the expected benefit appears high. A purely rule-based prohibition might over-block
 ordinary assistance. The project instead uses affective evidence to decide when a stronger
@@ -207,12 +223,13 @@ deontological constraint should override the commercial prompt.
 
 \subsection{Trustworthy AI and the EU AI Act}
 
-The project operationalizes key principles of Trustworthy AI as defined by the AI
-High-Level Expert Group \cite{hleg2019}:
+The project operationalizes a subset of the Trustworthy AI requirements most
+directly relevant to the prototype, as defined by the AI High-Level Expert Group
+\cite{hleg2019}:
 \begin{itemize}[leftmargin=1.8em]
-\item \textbf{Respect for human autonomy:} human agency is protected because the system
-dynamically disables nudging and persuasion tactics, avoiding steering vulnerable users
-toward immediate action.
+\item \textbf{Human agency and oversight:} human agency is supported because the system
+dynamically disables nudging and persuasion tactics, avoiding steering users toward
+immediate action in persuasion-sensitive interactions.
 \item \textbf{Prevention of harm:} this is managed by the consequentialist risk score,
 which mitigates the probability of impulsive financial decisions, retaliatory messages, or
 emotionally driven purchases.
@@ -224,12 +241,12 @@ rationale, rather than keeping the ethical assessment hidden inside the LLM blac
 The EU AI Act is relevant because it treats manipulation and exploitation of vulnerability
 as serious AI risks \cite{euaiact}. In particular, Article 5 addresses manipulative or
 exploitative practices that can materially distort a person's behavior. This project is not
-a legal classification tool, and it does not claim that temporary emotional vulnerability
-automatically satisfies the legal categories used by the Regulation. However, it translates
-the same regulatory intuition into software design: if an AI system detects that the user is
-in a fragile state, it should not amplify commercial pressure or directive persuasion. The
-ethical layer is therefore a practical safeguard inspired by the AI Act's concern with
-autonomy, vulnerability, and behavioral distortion.
+a legal classification tool, and it should not be read as claiming that emotional
+vulnerability detected from text is itself an AI Act vulnerability category. Rather, the Act
+provides a regulatory analogy: AI systems should not exploit conditions that reduce a
+person's ability to make free and informed decisions. The ethical layer is therefore a
+practical safeguard inspired by the AI Act's concern with autonomy, vulnerability, and
+behavioral distortion.
 
 \subsection{Profiling, Inferred Emotional Data, and Data Minimisation}
 
@@ -237,7 +254,7 @@ The project also connects to the GDPR discussion on profiling and automated infe
 \cite{gdpr}. The affective layer infers an emotional state from text. If such an inference
 were stored, linked to an identifiable user, and reused to predict or influence future
 behavior, it could become part of a profiling process. This is precisely the problematic
-transition highlighted by the GDPR/profiling debate: from observing behavior, to inferring
+transition highlighted by the GDPR: from observing behavior, to inferring
 personal characteristics, to using those inferences for targeted influence.
 
 The design of this project deliberately avoids that direction. The inferred emotion is used
@@ -534,8 +551,8 @@ summarizes the exact logic implemented by the software.
 
 This formalization is useful because it shows that the ethical behavior is not an
 uncontrolled side effect of the LLM. The language model does not decide by itself whether
-the user is vulnerable. That decision is made before generation by a separate, auditable
-layer.
+the current turn should be protected. That decision is made before generation by a separate,
+auditable layer.
 
 \subsubsection{Explainability Boundary}
 
@@ -572,8 +589,9 @@ standard prompt, Llama 3.1 Instruct is often already cautious because it has bee
 avoid many harmful recommendations. However, real applications do not always use foundation
 models in a neutral way. A company can wrap the same model in a commercial system prompt
 that rewards decisiveness, conversion, and immediate completion. The commercial baseline
-therefore represents the risk scenario: not an inherently malicious model, but a safe
-foundation model placed inside a persuasive product context.
+therefore represents a stress-test scenario: not an inherently malicious model, and not a
+claim about all commercial assistants, but a safe foundation model placed inside a strongly
+conversion-oriented product context.
 
 When protection is activated, the protected prompt overrides the commercial prompt. The
 protected prompt explicitly forbids persuasion, nudging, urgency, scarcity framing, guilt
@@ -581,8 +599,7 @@ framing, and pressure. It asks the assistant to remain calm, neutral, supportive
 non-directive. In ethical terms, the system shifts from persuasion toward autonomy support.
 
 The two system prompts most relevant to the evaluation are the commercial prompt and the
-protected prompt. They are part of the project's ethical design, not merely implementation
-details.
+protected prompt.
 
 \begin{quote}
 \textbf{Commercial system prompt:}
@@ -685,7 +702,7 @@ they are not the basis of the final report results.
 
 \subsection{Benchmark Configuration}
 
-The real benchmark run was executed with:
+The final benchmark run was executed with:
 
 \begin{itemize}[leftmargin=1.8em]
 \item \textbf{Affective model:} \code{SamLowe/roberta-base-go\_emotions}
@@ -715,6 +732,12 @@ curated examples:
 \item neutral and positive control prompts.
 \end{itemize}
 
+The labels were assigned manually according to the intended ethical
+condition of each prompt. This is appropriate for a controlled diagnostic benchmark, but it
+is not equivalent to a large annotated dataset and it does not include inter-annotator
+agreement. The evaluation should therefore be read as a proof-of-concept stress test, not as
+a generalizable measurement of real-world emotion detection performance.
+
 The evaluation runner compares:
 
 \begin{itemize}[leftmargin=1.8em]
@@ -724,11 +747,9 @@ protection mode but with a commercial-style system prompt that encourages immedi
 completion.
 \end{itemize}
 
-The oral presentation notebook uses the same \code{prompts.csv} file and selects a small set
-of representative \code{example\_id} values in memory. This avoids maintaining a second demo
-dataset: the report, benchmark, and notebook are all grounded in the same prompt source.
-The corresponding presentation output is saved as
-\code{artifacts/evaluation/presentation\_demo\_results.csv}.
+The commercial baseline is not intended to represent every commercial assistant. It is a
+stress-test profile designed to expose the type of conversion-oriented pressure that the
+ethical layer is meant to counteract.
 
 \section{Evaluation Results}
 
@@ -739,10 +760,30 @@ level. It protected 13 of the 14 prompts labeled as vulnerable and kept 4 of the
 prompts unflagged. Equivalently, the transformer-driven pipeline produced three
 condition-level errors: two false positives, where neutral prompts activated protection, and
 one false negative, where a vulnerable prompt was not protected. The most difficult cases
-were all mixed emotional prompts, which is exactly where the project becomes most
-interesting to discuss. This count refers to the binary ethical condition
+were all mixed emotional prompts. This count refers to the binary ethical condition
 (\code{vulnerable} vs \code{neutral}), not to exact agreement between the model's emotion
 label and a manually assigned emotion label.
+
+The condition-level confusion matrix is:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lcc}
+\toprule
+ & \textbf{Predicted vulnerable} & \textbf{Predicted neutral} \\
+\midrule
+\textbf{Expected vulnerable} & 13 & 1 \\
+\textbf{Expected neutral} & 2 & 4 \\
+\bottomrule
+\end{tabular}
+\caption{Condition-level confusion matrix for the transformer-driven guarded pipeline.}
+\label{tab:confusion_matrix}
+\end{table}
+
+This corresponds to 0.85 accuracy, 0.87 precision for the protected condition, and 0.93
+recall for the protected condition. These metrics are reported only as descriptive values
+for the controlled benchmark; the dataset is too small and too curated to support broad
+claims about deployment performance.
 
 Table~\ref{tab:results} summarizes a representative subset of the transformer-driven
 evaluation executed through the real local LLM pipeline. It includes successful vulnerable
@@ -804,7 +845,7 @@ and negative signals coexist;
 \item the end-to-end system still protected most clearly vulnerable prompts correctly;
 \item the commercial baseline made the unguarded model's risky persuasive behavior visible,
 while the protected branch shifted the same local model back toward a
-non-directive and autonomy-preserving response.
+non-directive and autonomy-supporting response.
 \end{itemize}
 
 The unguarded branch was not harmful in every single case. Llama 3.1 Instruct still has
@@ -812,7 +853,7 @@ internal alignment behavior, and it refused or softened some unsafe requests eve
 commercial prompt. This is an important observation rather than a problem for the project:
 the benchmark does not claim that every unguarded response is dangerous. It shows that when
 commercial prompting succeeds in pushing the model toward immediate action, the ethical
-layer can override that pressure in emotionally vulnerable contexts.
+layer can override that pressure in persuasion-sensitive contexts.
 
 \subsection{Qualitative Scenario Analysis}
 
@@ -1001,10 +1042,10 @@ important because the ethical engine is not tied to one specific model: a better
 classifier or a different local LLM could be substituted without rewriting the ethical
 policy.
 
-The real benchmark adds a second strength: the guarded prompt affects the behavior of an
+The final benchmark adds a second strength: the guarded prompt affects the behavior of an
 actual local Llama 3.1 inference pipeline. The commercial baseline is deliberately
-persuasive, but it is not arbitrary: it represents a realistic deployment risk in which an
-application-level system prompt is optimized for conversion, completion, or engagement. This
+persuasive, but it is not arbitrary: it is a stress-test of a conversion-oriented deployment
+in which an application-level system prompt is optimized for completion or engagement. This
 makes the final delivery stronger than a pure architectural mock-up, because the evaluation
 includes both genuine transformer inference and genuine local generation.
 
@@ -1012,15 +1053,22 @@ The project also illustrates a useful boundary between explainability and safety
 transformer model is not fully interpretable, but the ethical decision procedure is. This is
 important for accountability: if the system enters protected mode, the report can identify
 which emotional signal was detected, which threshold was crossed, and which rule activated
-the guardrail.
+the guardrail. The system is therefore not fully explainable end-to-end; it is normatively
+explainable at the intervention layer.
 
 At the same time, the current delivery still has important limitations. The affective
 benchmark used a deliberately curated twenty-prompt dataset, and the transformer layer
 depends on a mapping from a general-purpose emotion model to the narrower taxonomy required
 by the project. The mixed edge cases show that even a real transformer model can struggle
 when the message contains both positive and negative signals. Therefore, the strongest
-empirical claim supported by the current delivery is about \emph{software behavior and
-guardrail logic under a controlled benchmark}, not about broad deployment-ready performance.
+empirical claim supported by the current delivery is about software behavior and
+guardrail logic under a controlled benchmark, not about broad deployment-ready performance.
+
+There is also a risk of paternalism. Reducing persuasive pressure can support autonomy, but
+over-protection can also make the system unnecessarily cautious when a user simply wants
+direct help. The false positives in the mixed prompts show this tension clearly. For this
+reason, the project treats protection as a reversible conversational mode for the current
+turn, not as a judgement about the user's general competence or decision-making capacity.
 
 Finally, the project raises a fairness concern that should not be ignored. Emotion detection
 can be sensitive to linguistic style, cultural expression, disability-related communication
@@ -1038,10 +1086,11 @@ supports guarded vs unguarded evaluation.
 The final delivery goes beyond a mock-only prototype. The reported experiments include a real
 transformer-based affective layer and a real local GGUF Llama backend, both executed on the
 target machine. The main contribution of the project is therefore not a claim of perfect
-emotional understanding, but a clear and inspectable architectural proposal: when emotional
-vulnerability is detected, the assistant should reduce manipulative pressure and adopt a more
-cautious, autonomy-preserving style. The current repository demonstrates that this idea can
-be implemented in a modular, reproducible, and inspectable way.
+emotional understanding, but a clear and inspectable architectural proposal: when
+vulnerability-relevant signals are detected, the assistant should reduce manipulative
+pressure and adopt a more cautious, autonomy-supporting style. The current repository
+demonstrates that this idea can be implemented in a modular, reproducible, and inspectable
+way.
 
 \section{Future Work}
 
@@ -1049,9 +1098,13 @@ The most relevant next steps are:
 
 \begin{itemize}[leftmargin=1.8em]
 \item annotate the current evaluation dataset more systematically and expand it further;
+\item collect independent human annotations and measure inter-annotator agreement;
 \item compare multiple transformer affective models rather than only one selected backend;
 \item compare multiple GGUF quantizations and local models rather than a single Llama 3.1
 configuration;
+\item evaluate a more moderate commercial baseline in addition to the current stress-test
+baseline;
+\item add an independent metric or human rating protocol for persuasive pressure;
 \item compare guarded and unguarded outputs with human evaluation;
 \item refine the ethical rules with more nuanced contextual features.
 \end{itemize}
